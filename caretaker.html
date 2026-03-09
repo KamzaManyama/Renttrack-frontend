@@ -430,7 +430,7 @@
 document.getElementById('sb-app-name').textContent = ENV.APP_NAME || 'RentTrack';
 document.title = `${ENV.APP_NAME || 'RentTrack'} — Caretaker Dashboard`;
 
-if (!Auth.isLoggedIn()) { window.location.href = 'login.html'; }
+if (!Auth.isLoggedIn()) { window.location.href = 'index.html'; }
 if (Auth.user?.role === 'tenant') { window.location.href = 'tenant.html'; }
 
 const user = Auth.user;
@@ -476,7 +476,7 @@ function showPage(id, navEl) {
   if (id === 'notifications') loadNotifications();
 }
 
-function logout() { Auth.clear(); window.location.href = 'login.html'; }
+function logout() { Auth.clear(); window.location.href = 'index.html'; }
 
 // ── Modal helpers ─────────────────────────────────────────────
 function openModal(id) { document.getElementById(id).classList.add('open'); }

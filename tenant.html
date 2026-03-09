@@ -270,7 +270,7 @@
 document.getElementById('sb-app-name').textContent = ENV.APP_NAME || 'RentTrack';
 document.title = `${ENV.APP_NAME || 'RentTrack'} — Tenant Portal`;
 
-if (!Auth.isLoggedIn()) { window.location.href = 'login.html'; }
+if (!Auth.isLoggedIn()) { window.location.href = 'index.html'; }
 const user = Auth.user;
 if (user && !['tenant','staff'].includes(user.role)) { window.location.href = 'caretaker.html'; }
 
@@ -295,7 +295,7 @@ function showPage(id, navEl) {
   if (id === 'dashboard') loadDashboard();
 }
 
-function logout() { Auth.clear(); window.location.href = 'login.html'; }
+function logout() { Auth.clear(); window.location.href = 'index.html'; }
 
 // ── Dashboard ─────────────────────────────────────────────────
 async function loadDashboard() {
