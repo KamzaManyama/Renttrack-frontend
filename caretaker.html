@@ -1,80 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>RentTrack — Caretaker Dashboard</title>
-<link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RentTrack — Technician</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style/caretaker.css">
 <script src="env.js"></script>
+
 </head>
 <body>
 
-<div class="app">
+<div class="menu-overlay" id="menuOverlay" onclick="toggleSidebar()"></div>
 
-  <!-- ── Sidebar ── -->
-  <aside class="sidebar">
+<div class="modal-overlay" id="notification-modal">
+  <div class="modal-custom">
+    <div class="modal-header"><h3>Notification</h3><button class="modal-close" onclick="closeNotificationModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="modal-icon" id="notification-icon"></div>
+      <div class="modal-title" id="notification-title"></div>
+      <div class="modal-message" id="notification-message"></div>
+      <div class="modal-actions"><button class="btn btn-primary" onclick="closeNotificationModal()">Got it</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <svg width="28" height="22" viewBox="0 0 50 39" fill="none">
-        <path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" fill="#007AFF"/>
-        <path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" fill="#312ECB"/>
-      </svg>
+      <svg width="28" height="22" viewBox="0 0 50 39" fill="none"><path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" fill="#0369a1"/><path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" fill="#0284c7"/></svg>
       <span class="sidebar-logo-name" id="sb-app-name">RentTrack</span>
     </div>
-
-    <div class="sidebar-role" id="sb-role-label">Loading…</div>
-
+    <div class="sidebar-role">Technician Portal</div>
     <nav class="nav-section">
-      <div class="nav-section-label">Overview</div>
-      <div class="nav-item active" onclick="showPage('dashboard',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        Dashboard
+      <div class="nav-section-label">My Work</div>
+      <div class="nav-item active" onclick="showPage('jobs',this);closeSidebarMobile();">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        My Jobs<span class="notif-dot" id="jobs-dot" style="display:none"></span>
+      </div>
+      <div class="nav-item" onclick="showPage('completed',this);closeSidebarMobile();">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Completed
       </div>
     </nav>
-
-    <nav class="nav-section">
-      <div class="nav-section-label">Operations</div>
-      <div class="nav-item" onclick="showPage('tickets',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Tickets
-      </div>
-      <div class="nav-item" id="nav-schedules" onclick="showPage('schedules',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Schedules
-      </div>
-      <div class="nav-item" id="nav-properties" onclick="showPage('properties',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Properties
-      </div>
-    </nav>
-
-    <nav class="nav-section" id="nav-manager-section">
-      <div class="nav-section-label">Management</div>
-      <div class="nav-item" id="nav-users" onclick="showPage('users',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-        Users
-      </div>
-      <div class="nav-item" id="nav-reports" onclick="showPage('reports',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        Reports
-      </div>
-    </nav>
-
     <nav class="nav-section">
       <div class="nav-section-label">Account</div>
-      <div class="nav-item" onclick="showPage('notifications',this)">
+      <div class="nav-item" onclick="showPage('notifications',this);closeSidebarMobile();">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-        Notifications
-        <span class="notif-dot" id="notif-dot" style="display:none"></span>
+        Notifications<span class="notif-dot" id="notif-dot" style="display:none"></span>
       </div>
     </nav>
-
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <div class="sidebar-user-avatar" id="sb-avatar">C</div>
-        <div>
-          <div class="sidebar-user-name" id="sb-name">Loading…</div>
-          <div class="sidebar-user-role" id="sb-role">—</div>
-        </div>
+        <div class="sidebar-user-avatar" id="sb-avatar">T</div>
+        <div><div class="sidebar-user-name" id="sb-name">Loading…</div><div class="sidebar-user-role">Technician</div></div>
         <button class="btn-logout" onclick="logout()" title="Sign out">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
@@ -82,354 +61,169 @@
     </div>
   </aside>
 
-  <!-- ── Main ── -->
   <div class="main">
-
     <div class="topbar">
-      <span class="topbar-title" id="page-title">Dashboard</span>
-      <div class="topbar-actions" id="topbar-actions"></div>
+      <div class="topbar-left">
+        <button class="burger-menu" id="burgerMenu" onclick="toggleSidebar()" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+        <div class="mobile-brand">
+          <svg width="22" height="18" viewBox="0 0 50 39" fill="none"><path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" fill="#0369a1"/><path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" fill="#0284c7"/></svg>
+          <span id="mobileAppName">RentTrack</span>
+        </div>
+        <span class="topbar-title" id="page-title">My Jobs</span>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="refreshCurrent()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        <span class="btn-text">Refresh</span>
+      </button>
     </div>
+    <div class="swipe-hint" id="swipeHint">← Swipe to open menu</div>
 
-    <!-- ══ PAGE: DASHBOARD ══ -->
-    <section class="page active" id="page-dashboard">
-      <div class="stats-grid" id="dash-stats">
-        <div class="stat-card">
-          <div class="stat-card-label">Open</div>
-          <div class="stat-card-value" id="s-open" style="color:#1d4ed8">—</div>
-          <div class="stat-card-sub">Awaiting assignment</div>
+    <!-- MY JOBS -->
+    <section class="page active" id="page-jobs">
+      <div class="stats-grid">
+        <div class="stat-card accent-blue">
+          <div class="stat-card-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Assigned</div>
+          <div class="stat-card-value" id="st-assigned" style="color:var(--tech)">—</div>
+          <div class="stat-card-sub">New jobs waiting</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-card-label">In Progress</div>
-          <div class="stat-card-value" id="s-progress" style="color:#b45309">—</div>
-          <div class="stat-card-sub">Actively being worked</div>
+        <div class="stat-card accent-amber">
+          <div class="stat-card-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> In Progress</div>
+          <div class="stat-card-value" id="st-inprogress" style="color:#b45309">—</div>
+          <div class="stat-card-sub">Currently working</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-card-label">Urgent</div>
-          <div class="stat-card-value" id="s-urgent" style="color:#b91c1c">—</div>
-          <div class="stat-card-sub">Needs immediate action</div>
+        <div class="stat-card accent-red">
+          <div class="stat-card-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Urgent</div>
+          <div class="stat-card-value" id="st-urgent" style="color:#b91c1c">—</div>
+          <div class="stat-card-sub">Priority attention</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-card-label">Completed Today</div>
-          <div class="stat-card-value" id="s-done" style="color:#15803d">—</div>
-          <div class="stat-card-sub">Resolved</div>
+        <div class="stat-card accent-slate">
+          <div class="stat-card-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/></svg> On Hold</div>
+          <div class="stat-card-value" id="st-hold" style="color:#94a3b8">—</div>
+          <div class="stat-card-sub">Blocked / waiting</div>
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-        <div class="card">
-          <div class="card-header">
-            <h3>Urgent & High Priority</h3>
-            <button class="btn btn-ghost btn-sm" onclick="showPage('tickets',document.querySelectorAll('.nav-item')[1])">View all →</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Ticket</th><th>Title</th><th>Priority</th><th>Status</th></tr></thead>
-              <tbody id="dash-urgent-body"><tr class="loading-row"><td colspan="4">Loading…</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <h3>Upcoming Schedules</h3>
-            <button class="btn btn-ghost btn-sm" onclick="showPage('schedules',document.querySelectorAll('.nav-item')[2])">View all →</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Title</th><th>Property</th><th>Due</th></tr></thead>
-              <tbody id="dash-sched-body"><tr class="loading-row"><td colspan="3">Loading…</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ PAGE: TICKETS ══ -->
-    <section class="page" id="page-tickets">
-      <div class="page-header">
-        <h2>Tickets</h2>
-      </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <div class="filter-pills">
-          <span class="filter-pill active" data-status="" onclick="filterTickets(this,'status')">All</span>
-          <span class="filter-pill" data-status="open" onclick="filterTickets(this,'status')">Open</span>
-          <span class="filter-pill" data-status="assigned" onclick="filterTickets(this,'status')">Assigned</span>
-          <span class="filter-pill" data-status="in_progress" onclick="filterTickets(this,'status')">In Progress</span>
-          <span class="filter-pill" data-status="on_hold" onclick="filterTickets(this,'status')">On Hold</span>
-          <span class="filter-pill" data-status="completed" onclick="filterTickets(this,'status')">Completed</span>
+          <span class="filter-pill active" data-status="" onclick="filterJobs(this)">All Active</span>
+          <span class="filter-pill" data-status="assigned" onclick="filterJobs(this)">Assigned</span>
+          <span class="filter-pill" data-status="in_progress" onclick="filterJobs(this)">In Progress</span>
+          <span class="filter-pill" data-status="on_hold" onclick="filterJobs(this)">On Hold</span>
         </div>
-        <div class="search-input" style="margin-left:auto">
+        <div class="search-input" style="margin-left:auto;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" placeholder="Search…" id="tk-search" oninput="renderTicketsTable()" />
+          <input type="text" placeholder="Search jobs…" id="job-search" oninput="applyJobFilters()">
         </div>
-        <div>
-          <select id="tk-priority-filter" onchange="renderTicketsTable()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:white;outline:none">
-            <option value="">All Priorities</option>
-            <option value="urgent">Urgent</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
+      </div>
+
+      <div id="jobs-grid" class="jobs-grid">
+        <div style="text-align:center;padding:48px;color:var(--muted);grid-column:1/-1;font-size:13px;">
+          <div class="spinner" style="border-color:rgba(0,0,0,.1);border-top-color:var(--tech);margin:0 auto 14px;width:24px;height:24px;"></div>Loading jobs…
+        </div>
+      </div>
+      <div id="jobs-pagination" class="pagination"></div>
+    </section>
+
+    <!-- COMPLETED -->
+    <section class="page" id="page-completed">
+      <div class="page-header">
+        <h2>Completed Jobs</h2>
+        <div class="search-input">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search completed…" id="completed-search" oninput="applyCompletedSearch()">
         </div>
       </div>
       <div class="card">
         <div class="table-wrap">
-          <table>
+          <table class="completed-table">
             <thead>
-              <tr><th>Ticket #</th><th>Title</th><th>Property</th><th>Category</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Created</th><th></th></tr>
+              <tr>
+                <th style="width:120px;">Ticket #</th>
+                <th>Title</th>
+                <th>Property / Unit</th>
+                <th style="width:120px;">Category</th>
+                <th style="width:100px;">Priority</th>
+                <th style="width:120px;">Completed</th>
+              </tr>
             </thead>
-            <tbody id="tk-body"><tr class="loading-row"><td colspan="9">Loading…</td></tr></tbody>
+            <tbody id="completed-body">
+              <tr class="loading-row"><td colspan="6" style="text-align:center;padding:32px;">Loading…</td></tr>
+            </tbody>
           </table>
         </div>
-        <div id="tk-pagination" style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)"></div>
+        <div id="completed-pagination" class="pagination" style="padding:12px 20px 16px;"></div>
       </div>
     </section>
 
-    <!-- ══ PAGE: SCHEDULES ══ -->
-    <section class="page" id="page-schedules">
-      <div class="page-header">
-        <h2>Maintenance Schedules</h2>
-        <button class="btn btn-primary btn-sm" id="btn-add-sched" onclick="openSchedModal()" style="display:none">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Schedule
-        </button>
-      </div>
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Title</th><th>Property</th><th>Category</th><th>Frequency</th><th>Due Date</th><th>Assigned</th><th>Status</th><th></th></tr></thead>
-            <tbody id="sched-body"><tr class="loading-row"><td colspan="8">Loading…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ PAGE: PROPERTIES ══ -->
-    <section class="page" id="page-properties">
-      <div class="page-header">
-        <h2>Properties</h2>
-        <button class="btn btn-primary btn-sm" id="btn-add-prop" onclick="openPropModal()" style="display:none">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Property
-        </button>
-      </div>
-      <div id="prop-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
-        <div style="text-align:center;padding:48px;color:var(--muted)">Loading…</div>
-      </div>
-    </section>
-
-    <!-- ══ PAGE: USERS ══ -->
-    <section class="page" id="page-users">
-      <div class="page-header">
-        <h2>Users</h2>
-        <button class="btn btn-primary btn-sm" onclick="openUserModal()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add User
-        </button>
-      </div>
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
-            <tbody id="users-body"><tr class="loading-row"><td colspan="7">Loading…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ PAGE: REPORTS ══ -->
-    <section class="page" id="page-reports">
-      <div class="page-header"><h2>Reports</h2></div>
-      <div class="tab-bar">
-        <button class="tab-btn active" onclick="reportTab('tickets',this)">Ticket Stats</button>
-        <button class="tab-btn" onclick="reportTab('technicians',this)">Technicians</button>
-        <button class="tab-btn" onclick="reportTab('properties',this)">Properties</button>
-      </div>
-      <div id="report-content">
-        <div style="text-align:center;padding:48px;color:var(--muted)">Select a report tab above.</div>
-      </div>
-    </section>
-
-    <!-- ══ PAGE: NOTIFICATIONS ══ -->
+    <!-- NOTIFICATIONS -->
     <section class="page" id="page-notifications">
       <div class="page-header">
         <h2>Notifications</h2>
-        <button class="btn btn-outline btn-sm" onclick="markAllRead()">Mark all read</button>
+        <button class="btn btn-outline btn-sm" onclick="markAllRead()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Mark all read
+        </button>
       </div>
-      <div class="card">
-        <div id="notif-list">
-          <div style="text-align:center;padding:48px;color:var(--muted)">Loading…</div>
-        </div>
-      </div>
+      <div class="card"><div id="notif-list" style="padding:0;"><div style="text-align:center;padding:48px;color:var(--muted);font-size:13px;">Loading…</div></div></div>
     </section>
-
   </div>
 </div>
 
-<!-- ── Ticket Modal ── -->
-<div class="modal-backdrop" id="ticket-modal">
-  <div class="modal" style="max-width:700px">
+<!-- Job Detail Modal -->
+<div class="modal-backdrop" id="job-modal">
+  <div class="modal" style="max-width:640px;">
     <div class="modal-header">
-      <h3 id="modal-tk-num">Ticket</h3>
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('ticket-modal')">✕</button>
-    </div>
-    <div class="modal-body" id="modal-tk-body">Loading…</div>
-  </div>
-</div>
-
-<!-- ── Add User Modal ── -->
-<div class="modal-backdrop" id="user-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Add User</h3>
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('user-modal')">✕</button>
+      <div>
+        <h3 id="modal-tk-num" style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--muted);">TKT-000000</h3>
+        <div id="modal-tk-badges" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closeJobModal()" style="padding:6px 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="modal-body">
-      <div class="form-grid" style="gap:16px">
-        <div class="form-group">
-          <label>Full Name *</label>
-          <input type="text" id="u-name" placeholder="Full name" />
-          <span class="err" id="u-name-err"></span>
+      <div class="quick-update-bar">
+        <span class="quick-update-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Quick Update
+        </span>
+        <select class="status-select" id="modal-status-sel">
+          <option value="in_progress">Mark In Progress</option>
+          <option value="on_hold">Put On Hold</option>
+          <option value="completed">Mark Completed</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="quickUpdateStatus()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Apply
+        </button>
+      </div>
+      <div id="modal-tk-body">
+        <div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">
+          <div class="spinner" style="border-color:rgba(0,0,0,.1);border-top-color:var(--tech);margin:0 auto 12px;width:22px;height:22px;"></div>Loading…
         </div>
-        <div class="form-grid cols-2">
-          <div class="form-group">
-            <label>Email *</label>
-            <input type="text" id="u-email" placeholder="email@example.com" />
-            <span class="err" id="u-email-err"></span>
-          </div>
-          <div class="form-group">
-            <label>Phone</label>
-            <input type="text" id="u-phone" placeholder="+27 82 000 0000" />
-          </div>
+      </div>
+      <div style="margin-top:22px;padding-top:20px;border-top:1px solid var(--border-light);">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text);display:flex;align-items:center;gap:7px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Updates &amp; Comments
         </div>
-        <div class="form-group">
-          <label>Role *</label>
-          <select id="u-role">
-            <option value="">— Select role —</option>
-            <option value="tenant">Tenant</option>
-            <option value="technician">Technician</option>
-            <option value="maintenance_admin">Maintenance Admin</option>
-            <option value="manager">Manager</option>
-          </select>
-          <span class="err" id="u-role-err"></span>
-        </div>
-        <div class="form-grid cols-2">
-          <div class="form-group">
-            <label>Password *</label>
-            <input type="password" id="u-pw" placeholder="Min. 8 characters" />
-            <span class="err" id="u-pw-err"></span>
-          </div>
-          <div class="form-group">
-            <label>Confirm Password *</label>
-            <input type="password" id="u-pw2" placeholder="Repeat password" />
-            <span class="err" id="u-pw2-err"></span>
-          </div>
+        <div id="modal-updates-list"></div>
+        <div class="comment-box" style="margin-top:14px;">
+          <textarea id="modal-comment" rows="2" placeholder="Add an update or note…"></textarea>
+          <button class="btn btn-primary btn-sm" style="align-self:flex-end;" onclick="postComment()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Send
+          </button>
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('user-modal')">Cancel</button>
-      <button class="btn btn-primary" id="btn-create-user" onclick="createUser()">Create User</button>
-    </div>
   </div>
 </div>
-
-<!-- ── Add Property Modal ── -->
-<div class="modal-backdrop" id="prop-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Add Property</h3>
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('prop-modal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-grid" style="gap:16px">
-        <div class="form-group"><label>Property Name *</label><input type="text" id="p-name" placeholder="e.g. Greenfields Estate" /><span class="err" id="p-name-err"></span></div>
-        <div class="form-group"><label>Street Address *</label><input type="text" id="p-address" placeholder="123 Main St" /><span class="err" id="p-address-err"></span></div>
-        <div class="form-grid cols-2">
-          <div class="form-group"><label>City</label><input type="text" id="p-city" placeholder="Johannesburg" /></div>
-          <div class="form-group"><label>Province</label><input type="text" id="p-province" placeholder="Gauteng" /></div>
-        </div>
-        <div class="form-group"><label>Postal Code</label><input type="text" id="p-postal" placeholder="2000" /></div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('prop-modal')">Cancel</button>
-      <button class="btn btn-primary" id="btn-create-prop" onclick="createProperty()">Add Property</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── Schedule Modal ── -->
-<div class="modal-backdrop" id="sched-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Add Maintenance Schedule</h3>
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('sched-modal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-grid" style="gap:16px">
-        <div class="form-group"><label>Title *</label><input type="text" id="sc-title" placeholder="e.g. Monthly fire inspection" /><span class="err" id="sc-title-err"></span></div>
-        <div class="form-grid cols-2">
-          <div class="form-group">
-            <label>Property *</label>
-            <select id="sc-property"><option value="">— Select property —</option></select>
-            <span class="err" id="sc-property-err"></span>
-          </div>
-          <div class="form-group">
-            <label>Category</label>
-            <select id="sc-category"><option value="">— Select category —</option></select>
-          </div>
-        </div>
-        <div class="form-grid cols-2">
-          <div class="form-group">
-            <label>Frequency *</label>
-            <select id="sc-freq">
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="fortnightly">Fortnightly</option>
-              <option value="monthly" selected>Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="biannual">Biannual</option>
-              <option value="yearly">Yearly</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Next Due Date *</label>
-            <input type="date" id="sc-due" />
-            <span class="err" id="sc-due-err"></span>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Assigned To</label>
-          <select id="sc-technician"><option value="">— Unassigned —</option></select>
-        </div>
-        <div class="form-group">
-          <label>Priority</label>
-          <select id="sc-priority">
-            <option value="low">Low</option>
-            <option value="medium" selected>Medium</option>
-            <option value="high">High</option>
-            <option value="urgent">Urgent</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Description</label><textarea id="sc-desc" rows="3" placeholder="Optional notes…"></textarea></div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('sched-modal')">Cancel</button>
-      <button class="btn btn-primary" id="btn-create-sched" onclick="createSchedule()">Create Schedule</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div id="toast" class="toast toast--success"><span class="toast__msg"></span></div>
 
 <script src="app.js"></script>
-<script>
-// ── Init ──────────────────────────────────────────────────────
-document.getElementById('sb-app-name').textContent = ENV.APP_NAME || 'RentTrack';
-document.title = `${ENV.APP_NAME || 'RentTrack'} — Caretaker Dashboard`;
+<script src="javascript/caretaker.js"></script>
 
+<<<<<<< HEAD
 if (!Auth.isLoggedIn()) { window.location.href = 'index.html'; }
 if (Auth.user?.role === 'tenant') { window.location.href = 'tenant.html'; }
 
@@ -1017,5 +811,7 @@ function fErr(id, msg) {
 // ── Boot ──────────────────────────────────────────────────────
 loadDashboard();
 </script>
+=======
+>>>>>>> 844f69b (Add styles and HTML structure for Super Admin and Technician roles)
 </body>
 </html>

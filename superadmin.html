@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RentTrack — Super Admin</title>
+<link rel="stylesheet" href="style.css" />
+<script src="env.js"></script>
+<style>
+  /* Super Admin accent — deep purple/violet to distinguish from other roles */
+  :root {
+    --sa-accent:   #7c3aed;
+    --sa-accent2:  #4f46e5;
+    --sa-dim:      #ede9fe;
+    --sa-grad:     linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  }
+  .sa-badge { display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--sa-dim);color:var(--sa-accent);letter-spacing:.04em;text-transform:uppercase; }
+  .nav-item.active { background: var(--sa-grad) !important; box-shadow: 0 3px 12px rgba(124,58,237,.35) !important; }
+  .btn-sa { background: var(--sa-grad); color: white; box-shadow: 0 3px 12px rgba(124,58,237,.25); display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-weight:600;font-size:13px;transition:opacity .15s; }
+  .btn-sa:hover { opacity:.88; }
+  .btn-sa:disabled { opacity:.5; cursor:not-allowed; }
+  .stat-card-sa { border-top: 3px solid var(--sa-accent); }
+  .company-card {
+    background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px;
+    transition:box-shadow .15s,border-color .15s;
+  }
+  .company-card:hover { box-shadow:var(--shadow);border-color:#c4b5fd; }
+  .status-pill-active   { background:#dcfce7;color:#166534; }
+  .status-pill-trial    { background:#fef3c7;color:#b45309; }
+  .status-pill-suspended{ background:#fee2e2;color:#b91c1c; }
+  .status-pill-inactive { background:#f1f5f9;color:#475569; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="28" height="22" viewBox="0 0 50 39" fill="none">
+        <path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" fill="#7c3aed"/>
+        <path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" fill="#4f46e5"/>
+      </svg>
+      <span class="sidebar-logo-name" id="sb-app-name">RentTrack</span>
+    </div>
+    <div class="sidebar-role">Super Admin</div>
+
+    <nav class="nav-section">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" onclick="showPage('dashboard',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-section-label">System</div>
+      <div class="nav-item" onclick="showPage('companies',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Companies
+        <span id="companies-count" style="margin-left:auto;background:rgba(255,255,255,.12);color:rgba(255,255,255,.6);padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700"></span>
+      </div>
+      <div class="nav-item" onclick="showPage('users',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        System Users
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sb-avatar" style="background:var(--sa-grad)">S</div>
+        <div>
+          <div class="sidebar-user-name" id="sb-name">Loading…</div>
+          <div class="sidebar-user-role">Super Admin</div>
+        </div>
+        <button class="btn-logout" onclick="logout()" title="Sign out">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="page-title">Dashboard</span>
+      <div class="topbar-actions" id="topbar-actions"></div>
+    </div>
+
+    <!-- ══ DASHBOARD ══ -->
+    <section class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card stat-card-sa">
+          <div class="stat-card-label">Total Companies</div>
+          <div class="stat-card-value" id="st-companies" style="color:var(--sa-accent)">—</div>
+          <div class="stat-card-sub">Registered tenants</div>
+        </div>
+        <div class="stat-card stat-card-sa">
+          <div class="stat-card-label">Active Companies</div>
+          <div class="stat-card-value" id="st-active" style="color:#15803d">—</div>
+          <div class="stat-card-sub">Currently running</div>
+        </div>
+        <div class="stat-card stat-card-sa">
+          <div class="stat-card-label">Trial Companies</div>
+          <div class="stat-card-value" id="st-trial" style="color:#b45309">—</div>
+          <div class="stat-card-sub">Pending conversion</div>
+        </div>
+        <div class="stat-card stat-card-sa">
+          <div class="stat-card-label">Suspended</div>
+          <div class="stat-card-value" id="st-suspended" style="color:#b91c1c">—</div>
+          <div class="stat-card-sub">Requires attention</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>All Companies</h3>
+          <button class="btn-sa btn-sm" onclick="showPage('companies',document.querySelectorAll('.nav-item')[1])">Manage →</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Company</th><th>Slug</th><th>Domain</th><th>Status</th><th>Created</th><th></th></tr></thead>
+            <tbody id="dash-companies-body"><tr class="loading-row"><td colspan="6">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ COMPANIES ══ -->
+    <section class="page" id="page-companies">
+      <div class="page-header">
+        <h2>Companies</h2>
+        <button class="btn-sa" onclick="openCompanyModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Company
+        </button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Slug</th><th>Domain</th><th>Status</th><th>Primary Color</th><th>Created</th><th>Actions</th></tr></thead>
+            <tbody id="companies-body"><tr class="loading-row"><td colspan="7">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ USERS ══ -->
+    <section class="page" id="page-users">
+      <div class="page-header">
+        <h2>System Users</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="company-filter" onchange="loadUsers()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:white;outline:none;min-width:200px">
+            <option value="">— All Companies —</option>
+          </select>
+          <select id="role-filter" onchange="loadUsers()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:white;outline:none">
+            <option value="">All Roles</option>
+            <option value="manager">Manager</option>
+            <option value="maintenance_admin">Maintenance Admin</option>
+            <option value="technician">Technician</option>
+            <option value="tenant">Tenant</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Status</th><th>Last Login</th></tr></thead>
+            <tbody id="users-body"><tr class="loading-row"><td colspan="6">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="users-pagination" style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Company Modal -->
+<div class="modal-backdrop" id="company-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h3 id="company-modal-title">New Company</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('company-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="gap:16px">
+        <div class="form-grid cols-2">
+          <div class="form-group"><label>Company Name *</label><input type="text" id="c-name" placeholder="Acme Properties" /><span class="err" id="c-name-err"></span></div>
+          <div class="form-group"><label>Slug * <span style="font-size:10px;font-weight:400;text-transform:none">(URL identifier)</span></label><input type="text" id="c-slug" placeholder="acme-properties" /><span class="err" id="c-slug-err"></span></div>
+        </div>
+        <div class="form-group"><label>Domain</label><input type="text" id="c-domain" placeholder="acme.renttrack.co.za" /></div>
+        <div class="form-grid cols-2">
+          <div class="form-group">
+            <label>Status</label>
+            <select id="c-status">
+              <option value="trial">Trial</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Primary Color</label><input type="color" id="c-color" value="#007AFF" style="height:41px;padding:4px 8px;cursor:pointer" /></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('company-modal')">Cancel</button>
+      <button class="btn-sa" id="btn-save-company" onclick="saveCompany()">Create Company</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Company Modal -->
+<div class="modal-backdrop" id="edit-company-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h3>Edit Company</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('edit-company-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="gap:16px">
+        <input type="hidden" id="edit-c-id" />
+        <div class="form-grid cols-2">
+          <div class="form-group"><label>Company Name *</label><input type="text" id="edit-c-name" /></div>
+          <div class="form-group"><label>Slug *</label><input type="text" id="edit-c-slug" /></div>
+        </div>
+        <div class="form-group"><label>Domain</label><input type="text" id="edit-c-domain" /></div>
+        <div class="form-grid cols-2">
+          <div class="form-group">
+            <label>Status</label>
+            <select id="edit-c-status">
+              <option value="trial">Trial</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Primary Color</label><input type="color" id="edit-c-color" style="height:41px;padding:4px 8px;cursor:pointer" /></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="deleteCompany()">Delete</button>
+      <button class="btn btn-outline" onclick="closeModal('edit-company-modal')">Cancel</button>
+      <button class="btn-sa" id="btn-update-company" onclick="updateCompany()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast toast--success"><span class="toast__msg"></span></div>
+
+<script src="app.js"></script>
+<script src="javascript/superAdmin.js"></script>
+</body>
+</html>

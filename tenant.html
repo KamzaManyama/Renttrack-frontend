@@ -1,13 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RentTrack — Tenant Portal</title>
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="style.css">
 <script src="env.js"></script>
 </head>
 <body>
+
+<!-- Mobile Menu Overlay -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleSidebar()"></div>
+
+<!-- ══ Notification Modal ══ -->
+<div class="modal-overlay" id="notification-modal">
+  <div class="modal-custom">
+    <div class="modal-header">
+      <h3>Notification</h3>
+      <button class="modal-close" onclick="closeNotificationModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-icon" id="notification-icon"></div>
+      <div class="modal-title" id="notification-title"></div>
+      <div class="modal-message" id="notification-message"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="closeNotificationModal()">Got it</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Confirmation Modal ══ -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-custom">
+    <div class="modal-header">
+      <h3>Confirm Action</h3>
+      <button class="modal-close" onclick="closeConfirmModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-icon" id="confirm-icon"></div>
+      <div class="modal-title" id="confirm-title"></div>
+      <div class="modal-message" id="confirm-message"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeConfirmModal()">Cancel</button>
+        <button class="btn btn-primary" id="confirm-yes-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="app">
 
@@ -25,21 +65,39 @@
 
     <nav class="nav-section">
       <div class="nav-section-label">Menu</div>
-      <div class="nav-item active" onclick="showPage('dashboard',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+
+      <div class="nav-item active" onclick="showPage('dashboard',this); closeSidebarMobile();">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+        </svg>
         Dashboard
       </div>
-      <div class="nav-item" onclick="showPage('tickets',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+
+      <div class="nav-item" onclick="showPage('tickets',this); closeSidebarMobile();">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
         My Tickets
         <span class="notif-dot" id="ticket-dot" style="display:none"></span>
       </div>
-      <div class="nav-item" onclick="showPage('new-ticket',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+
+      <div class="nav-item" onclick="showPage('new-ticket',this); closeSidebarMobile();">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
         Log New Issue
       </div>
-      <div class="nav-item" onclick="showPage('notifications',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+
+      <div class="nav-item" onclick="showPage('notifications',this); closeSidebarMobile();">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 01-3.46 0"/>
+        </svg>
         Notifications
         <span class="notif-dot" id="notif-dot" style="display:none"></span>
       </div>
@@ -47,13 +105,17 @@
 
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <div class="sidebar-user-avatar" id="sb-avatar">T</div>
+        <div class="sidebar-user-avatar" id="sb-avatar">H</div>
         <div>
-          <div class="sidebar-user-name" id="sb-name">Loading…</div>
+          <div class="sidebar-user-name" id="sb-name">Hana Van Wyk</div>
           <div class="sidebar-user-role">Tenant</div>
         </div>
         <button class="btn-logout" onclick="logout()" title="Sign out">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
         </button>
       </div>
     </div>
@@ -64,36 +126,65 @@
 
     <!-- Topbar -->
     <div class="topbar">
-      <span class="topbar-title" id="page-title">Dashboard</span>
+      <div class="topbar-left">
+        <button class="burger-menu" id="burgerMenu" onclick="toggleSidebar()" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="mobile-brand">
+          <svg width="22" height="18" viewBox="0 0 50 39" fill="none">
+            <path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" fill="#007AFF"/>
+            <path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" fill="#312ECB"/>
+          </svg>
+          <span id="mobileAppName">RentTrack</span>
+        </div>
+        <span class="topbar-title" id="page-title">Dashboard</span>
+      </div>
       <div class="topbar-actions">
-        <button class="btn btn-primary btn-sm" onclick="showPage('new-ticket', document.querySelector('.nav-item:nth-child(3)'))">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Log Issue
+        <button class="btn btn-primary btn-sm" onclick="showPage('new-ticket', document.querySelectorAll('.nav-item')[2]); closeSidebarMobile();">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span class="btn-text">New Ticket</span>
         </button>
       </div>
     </div>
 
-    <!-- ══ PAGE: DASHBOARD ══ -->
+    <!-- Swipe hint -->
+    <div class="swipe-hint" id="swipeHint">← Swipe to open menu</div>
+
+    <!-- ══ DASHBOARD ══ -->
     <section class="page active" id="page-dashboard">
       <div class="stats-grid" id="dash-stats">
         <div class="stat-card">
-          <div class="stat-card-label">Open Tickets</div>
-          <div class="stat-card-value" id="stat-open">—</div>
+          <div class="stat-card-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Open Tickets
+          </div>
+          <div class="stat-card-value" id="stat-open">2</div>
           <div class="stat-card-sub">Awaiting resolution</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-label">In Progress</div>
-          <div class="stat-card-value" id="stat-progress">—</div>
+          <div class="stat-card-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            In Progress
+          </div>
+          <div class="stat-card-value" id="stat-progress">1</div>
           <div class="stat-card-sub">Being worked on</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-label">Completed</div>
-          <div class="stat-card-value" id="stat-done">—</div>
+          <div class="stat-card-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Completed
+          </div>
+          <div class="stat-card-value" id="stat-done">0</div>
           <div class="stat-card-sub">Resolved issues</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-label">Total Logged</div>
-          <div class="stat-card-value" id="stat-total">—</div>
+          <div class="stat-card-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Total Logged
+          </div>
+          <div class="stat-card-value" id="stat-total">3</div>
           <div class="stat-card-sub">All time</div>
         </div>
       </div>
@@ -101,27 +192,25 @@
       <div class="card">
         <div class="card-header">
           <h3>Recent Tickets</h3>
-          <button class="btn btn-ghost btn-sm" onclick="showPage('tickets', document.querySelectorAll('.nav-item')[1])">View all →</button>
+          <button class="btn btn-ghost btn-sm" onclick="showPage('tickets', document.querySelectorAll('.nav-item')[1])">
+            View all
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Ticket</th><th>Title</th><th>Priority</th><th>Status</th><th>Created</th></tr>
-            </thead>
-            <tbody id="dash-tickets-body">
-              <tr class="loading-row"><td colspan="5">Loading…</td></tr>
-            </tbody>
-          </table>
+        <div style="padding: 16px;">
+          <div class="tickets-grid" id="dash-tickets-grid">
+            <!-- rendered by JS -->
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- ══ PAGE: MY TICKETS ══ -->
+    <!-- ══ MY TICKETS ══ -->
     <section class="page" id="page-tickets">
       <div class="page-header">
         <h2>My Tickets</h2>
       </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
         <div class="filter-pills" id="status-filters">
           <span class="filter-pill active" data-status="" onclick="filterStatus(this)">All</span>
           <span class="filter-pill" data-status="open" onclick="filterStatus(this)">Open</span>
@@ -131,25 +220,18 @@
         </div>
         <div class="search-input" style="margin-left:auto">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" placeholder="Search tickets…" id="ticket-search" oninput="searchTickets()" />
+          <input type="text" placeholder="Search tickets…" id="ticket-search" oninput="searchTickets()">
         </div>
       </div>
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Ticket #</th><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Assigned To</th><th>Updated</th><th></th></tr>
-            </thead>
-            <tbody id="tickets-body">
-              <tr class="loading-row"><td colspan="8">Loading tickets…</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div id="tickets-pagination" style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)"></div>
+
+      <div class="tickets-grid" id="tickets-grid">
+        <!-- rendered by JS -->
       </div>
+
+      <div id="tickets-pagination" class="pagination"></div>
     </section>
 
-    <!-- ══ PAGE: LOG NEW TICKET ══ -->
+    <!-- ══ LOG NEW TICKET ══ -->
     <section class="page" id="page-new-ticket">
       <div class="page-header">
         <h2>Log a New Issue</h2>
@@ -160,32 +242,26 @@
 
             <div class="form-group">
               <label>Issue Title <span style="color:#ef4444">*</span></label>
-              <input type="text" id="nt-title" placeholder="e.g. Leaking tap in kitchen" maxlength="300" />
+              <input type="text" id="nt-title" placeholder="e.g. Leaking tap in kitchen" maxlength="300">
               <span class="err" id="nt-title-err"></span>
             </div>
 
             <div class="form-grid cols-2">
               <div class="form-group">
                 <label>Property <span style="color:#ef4444">*</span></label>
-                <select id="nt-property" onchange="loadUnits()">
-                  <option value="">— Select property —</option>
-                </select>
+                <select id="nt-property" onchange="loadUnits()"><option value="">— Select property —</option></select>
                 <span class="err" id="nt-property-err"></span>
               </div>
               <div class="form-group">
                 <label>Unit</label>
-                <select id="nt-unit">
-                  <option value="">— Select unit (optional) —</option>
-                </select>
+                <select id="nt-unit"><option value="">— Select unit (optional) —</option></select>
               </div>
             </div>
 
             <div class="form-grid cols-2">
               <div class="form-group">
                 <label>Category</label>
-                <select id="nt-category">
-                  <option value="">— Select category —</option>
-                </select>
+                <select id="nt-category"><option value="">— Select category —</option></select>
               </div>
               <div class="form-group">
                 <label>Priority</label>
@@ -200,7 +276,7 @@
 
             <div class="form-group">
               <label>Description</label>
-              <textarea id="nt-desc" placeholder="Please describe the issue in detail — when it started, what you've observed, etc." rows="4"></textarea>
+              <textarea id="nt-desc" placeholder="Describe the issue — when it started, what you've observed, etc." rows="4"></textarea>
             </div>
 
             <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px">
@@ -210,36 +286,45 @@
                 Submit Ticket
               </button>
             </div>
+
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ══ PAGE: NOTIFICATIONS ══ -->
+    <!-- ══ NOTIFICATIONS ══ -->
     <section class="page" id="page-notifications">
       <div class="page-header">
         <h2>Notifications</h2>
-        <button class="btn btn-outline btn-sm" onclick="markAllRead()">Mark all read</button>
+        <button class="btn btn-outline btn-sm" onclick="markAllRead()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Mark all read
+        </button>
       </div>
       <div class="card">
-        <div id="notif-list" style="padding:0">
-          <div class="loading-row" style="text-align:center;padding:40px;color:var(--muted)">Loading…</div>
-        </div>
+        <div id="notif-list" style="padding:0"></div>
       </div>
     </section>
 
   </div><!-- /main -->
 </div><!-- /app -->
 
-<!-- Ticket Detail Modal -->
+<!-- ══ Ticket Detail Modal ══ -->
 <div class="modal-backdrop" id="ticket-modal">
-  <div class="modal" style="max-width:620px">
+  <div class="modal" style="max-width:600px">
     <div class="modal-header">
-      <h3 id="modal-ticket-num">Ticket #</h3>
-      <button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button>
+      <h3 id="modal-ticket-num">TKT-000000</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()" style="padding:6px 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="modal-body">
-      <div id="modal-ticket-content">Loading…</div>
+      <div id="modal-ticket-content">
+        <div style="text-align:center;padding:40px;color:var(--muted)">
+          <div class="spinner" style="border-color:rgba(0,0,0,.1);border-top-color:var(--blue);margin:0 auto 12px;width:24px;height:24px;"></div>
+          Loading…
+        </div>
+      </div>
 
       <div style="margin-top:24px">
         <div class="tab-bar">
@@ -247,10 +332,13 @@
           <button class="tab-btn" onclick="modalTab('details',this)">Details</button>
         </div>
         <div id="modal-updates">
-          <div id="updates-list"></div>
-          <div style="margin-top:16px;display:flex;gap:8px">
-            <textarea id="update-msg" placeholder="Add a comment…" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;resize:none;outline:none" rows="2"></textarea>
-            <button class="btn btn-primary btn-sm" style="align-self:flex-end" onclick="postUpdate()">Send</button>
+          <div id="updates-list"><p style="color:var(--muted);font-size:13px;padding:12px 0">No updates yet.</p></div>
+          <div class="comment-box">
+            <textarea id="update-msg" placeholder="Add a comment…" rows="2"></textarea>
+            <button class="btn btn-primary btn-sm" onclick="postUpdate()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send
+            </button>
           </div>
         </div>
         <div id="modal-details" style="display:none"></div>
@@ -259,12 +347,8 @@
   </div>
 </div>
 
-<!-- Toast -->
-<div id="toast" class="toast toast--success">
-  <span class="toast__msg"></span>
-</div>
-
 <script src="app.js"></script>
+<<<<<<< HEAD
 <script>
 // ── Init ─────────────────────────────────────────────────────
 document.getElementById('sb-app-name').textContent = ENV.APP_NAME || 'RentTrack';
@@ -601,5 +685,8 @@ document.getElementById('ticket-modal').addEventListener('click', e => {
 // ── Boot ──────────────────────────────────────────────────────
 loadDashboard();
 </script>
+=======
+<script src="javascript/tenant.js"></script>
+>>>>>>> 844f69b (Add styles and HTML structure for Super Admin and Technician roles)
 </body>
 </html>
