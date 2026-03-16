@@ -7,7 +7,6 @@ const ENV = window.__ENV__ || {};
 const API  = ENV.API_BASE_URL || "http://localhost:3000";
 const SLUG = ENV.COMPANY_SLUG || "";
 
-// ── Token store (sessionStorage so tab-close = logout) ──────
 const Auth = {
   get token()   { return sessionStorage.getItem("rt_token"); },
   get user()    { const u = sessionStorage.getItem("rt_user"); return u ? JSON.parse(u) : null; },
@@ -22,7 +21,6 @@ const Auth = {
   isLoggedIn() { return !!this.token; },
 };
 
-// ── HTTP helper ──────────────────────────────────────────────
 async function api(method, path, body, signal) {
   const headers = {
     "Content-Type": "application/json",
@@ -53,12 +51,14 @@ async function api(method, path, body, signal) {
   return data;
 }
 
-const GET    = (path, signal)       => api("GET",    path, null, signal);
-const POST   = (path, body)         => api("POST",   path, body);
-const PATCH  = (path, body)         => api("PATCH",  path, body);
-const DELETE = (path)               => api("DELETE", path);
 
-// ── Toast ────────────────────────────────────────────────────
+const GET    = (path, signal)  => api("GET",    path, null, signal);
+const POST   = (path, body)    => api("POST",   path, body);
+const PUT    = (path, body)    => api("PUT",    path, body);  
+const PATCH  = (path, body)    => api("PATCH",  path, body); 
+const DELETE = (path)          => api("DELETE", path);
+
+
 function toast(msg, type = "success") {
   const el = document.getElementById("toast");
   if (!el) return;
@@ -68,7 +68,6 @@ function toast(msg, type = "success") {
   el._t = setTimeout(() => el.classList.remove("toast--show"), 4500);
 }
 
-// ── Date helpers ─────────────────────────────────────────────
 function fmtDate(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
@@ -84,7 +83,6 @@ function timeAgo(iso) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-// ── Status badge ─────────────────────────────────────────────
 const STATUS_COLORS = {
   open:        { bg: "#dbeafe", fg: "#1d4ed8" },
   assigned:    { bg: "#e0e7ff", fg: "#4338ca" },

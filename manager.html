@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RentTrack — Manager</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="style/manager.css" />
+<script src="env.js"></script>
+
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="28" height="22" viewBox="0 0 50 39" fill="none">
+        <path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" fill="#007AFF"/>
+        <path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" fill="#312ECB"/>
+      </svg>
+      <span class="sidebar-logo-name" id="sb-app-name">RentTrack</span>
+    </div>
+    <div class="sidebar-role" id="sb-role-label">Management</div>
+
+    <nav class="nav-section">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" onclick="showPage('dashboard',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-section-label">Operations</div>
+      <div class="nav-item" onclick="showPage('tickets',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Tickets
+      </div>
+      <div class="nav-item" onclick="showPage('schedules',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Schedules
+      </div>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-section-label">Portfolio</div>
+      <div class="nav-item" onclick="showPage('properties',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Properties
+      </div>
+      <div class="nav-item" onclick="showPage('units',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+        Units &amp; Tenants
+      </div>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-section-label">Management</div>
+      <div class="nav-item" onclick="showPage('users',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Users
+      </div>
+      <div class="nav-item" onclick="showPage('reports',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Reports
+      </div>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-section-label">Account</div>
+      <div class="nav-item" onclick="showPage('notifications',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        Notifications
+        <span class="notif-dot" id="notif-dot" style="display:none"></span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sb-avatar">M</div>
+        <div>
+          <div class="sidebar-user-name" id="sb-name">Loading…</div>
+          <div class="sidebar-user-role" id="sb-role">—</div>
+        </div>
+        <button class="btn-logout" onclick="logout()" title="Sign out">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="page-title">Dashboard</span>
+      <div class="topbar-actions" id="topbar-actions"></div>
+    </div>
+
+    <!-- ══ DASHBOARD ══ -->
+    <section class="page active" id="page-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Open Tickets</div><div class="kpi-value" id="k-open" style="color:#1d4ed8">—</div><div class="kpi-sub">Unresolved</div></div>
+        <div class="kpi"><div class="kpi-label">In Progress</div><div class="kpi-value" id="k-progress" style="color:#b45309">—</div><div class="kpi-sub">Being worked on</div></div>
+        <div class="kpi"><div class="kpi-label">Urgent</div><div class="kpi-value" id="k-urgent" style="color:#b91c1c">—</div><div class="kpi-sub">Needs attention now</div></div>
+        <div class="kpi"><div class="kpi-label">Completed Today</div><div class="kpi-value" id="k-done" style="color:#15803d">—</div><div class="kpi-sub">Resolved</div></div>
+        <div class="kpi"><div class="kpi-label">Properties</div><div class="kpi-value" id="k-props">—</div><div class="kpi-sub">In portfolio</div></div>
+        <div class="kpi"><div class="kpi-label">Staff</div><div class="kpi-value" id="k-staff">—</div><div class="kpi-sub">Active technicians</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="card">
+          <div class="card-header"><h3>Urgent Tickets</h3><button class="btn btn-ghost btn-sm" onclick="showPage('tickets',document.querySelectorAll('.nav-item')[1])">All tickets →</button></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Ticket</th><th>Title</th><th>Priority</th><th>Status</th></tr></thead>
+            <tbody id="dash-urgent"><tr class="loading-row"><td colspan="4">Loading…</td></tr></tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Upcoming Maintenance</h3><button class="btn btn-ghost btn-sm" onclick="showPage('schedules',document.querySelectorAll('.nav-item')[2])">All →</button></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Title</th><th>Property</th><th>Due</th></tr></thead>
+            <tbody id="dash-sched"><tr class="loading-row"><td colspan="3">Loading…</td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ TICKETS ══ -->
+    <section class="page" id="page-tickets">
+      <div class="page-header">
+        <h2>Tickets</h2>
+        <button class="btn btn-primary btn-sm" onclick="openNewTicketModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Ticket
+        </button>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <div class="filter-pills">
+          <span class="filter-pill active" data-status="" onclick="filterTk(this)">All</span>
+          <span class="filter-pill" data-status="open" onclick="filterTk(this)">Open</span>
+          <span class="filter-pill" data-status="assigned" onclick="filterTk(this)">Assigned</span>
+          <span class="filter-pill" data-status="in_progress" onclick="filterTk(this)">In Progress</span>
+          <span class="filter-pill" data-status="on_hold" onclick="filterTk(this)">On Hold</span>
+          <span class="filter-pill" data-status="completed" onclick="filterTk(this)">Completed</span>
+        </div>
+        <div class="search-input" style="margin-left:auto">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search…" id="tk-search" oninput="renderTk()" />
+        </div>
+        <select id="tk-priority" onchange="renderTk()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:white;outline:none">
+          <option value="">All Priorities</option>
+          <option value="urgent">Urgent</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Ticket #</th><th>Title</th><th>Property</th><th>Category</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Created</th><th></th></tr></thead>
+            <tbody id="tk-body"><tr class="loading-row"><td colspan="9">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="tk-pagination" style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)"></div>
+      </div>
+    </section>
+
+    <!-- ══ SCHEDULES ══ -->
+    <section class="page" id="page-schedules">
+      <div class="page-header">
+        <h2>Maintenance Schedules</h2>
+        <button class="btn btn-primary btn-sm" onclick="openSchedModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Schedule
+        </button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Title</th><th>Property</th><th>Category</th><th>Frequency</th><th>Due Date</th><th>Assigned</th><th>Status</th><th></th></tr></thead>
+            <tbody id="sched-body"><tr class="loading-row"><td colspan="8">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ PROPERTIES ══ -->
+    <section class="page" id="page-properties">
+      <div class="page-header">
+        <h2>Properties</h2>
+        <button class="btn btn-primary btn-sm" onclick="openModal('prop-modal')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Property
+        </button>
+      </div>
+      <div id="prop-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px">
+        <div style="text-align:center;padding:48px;color:var(--muted)">Loading…</div>
+      </div>
+    </section>
+
+    <!-- ══ UNITS & TENANTS ══ -->
+    <section class="page" id="page-units">
+      <div class="page-header"><h2>Units &amp; Tenants</h2></div>
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:4px">
+        <select id="units-prop-filter" onchange="loadUnits()" style="padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:white;outline:none;min-width:220px">
+          <option value="">— Select a property —</option>
+        </select>
+        <button class="btn btn-primary btn-sm" id="btn-add-unit" onclick="openModal('unit-modal')" style="display:none">Add Unit</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Unit</th><th>Floor</th><th>Type</th><th>Current Tenant</th><th>Email</th><th>Phone</th><th>Move-in</th><th>Actions</th></tr></thead>
+            <tbody id="units-body"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted)">Select a property above to view units.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ USERS ══ -->
+    <section class="page" id="page-users">
+      <div class="page-header">
+        <h2>Users</h2>
+        <button class="btn btn-primary btn-sm" onclick="openUserModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add User
+        </button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:4px">
+        <div class="filter-pills">
+          <span class="filter-pill active" data-role="" onclick="filterUsers(this)">All</span>
+          <span class="filter-pill" data-role="manager" onclick="filterUsers(this)">Managers</span>
+          <span class="filter-pill" data-role="maintenance_admin" onclick="filterUsers(this)">Maintenance Admin</span>
+          <span class="filter-pill" data-role="technician" onclick="filterUsers(this)">Technicians</span>
+          <span class="filter-pill" data-role="tenant" onclick="filterUsers(this)">Tenants</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Status</th><th>Last Login</th><th>Actions</th></tr></thead>
+            <tbody id="users-body"><tr class="loading-row"><td colspan="7">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ REPORTS ══ -->
+    <section class="page" id="page-reports">
+      <div class="page-header"><h2>Reports</h2></div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="reportTab('tickets',this)">Ticket Overview</button>
+        <button class="tab-btn" onclick="reportTab('technicians',this)">Technician Performance</button>
+        <button class="tab-btn" onclick="reportTab('costs',this)">Cost Summary</button>
+      </div>
+      <div id="report-content"><div style="text-align:center;padding:48px;color:var(--muted)">Select a tab above.</div></div>
+    </section>
+
+    <!-- ══ NOTIFICATIONS ══ -->
+    <section class="page" id="page-notifications">
+      <div class="page-header"><h2>Notifications</h2><button class="btn btn-outline btn-sm" onclick="markAllRead()">Mark all read</button></div>
+      <div class="card"><div id="notif-list"><div style="text-align:center;padding:48px;color:var(--muted)">Loading…</div></div></div>
+    </section>
+  </div>
+</div>
+
+<!-- ── Ticket Modal (view/manage) ── -->
+<div class="modal-backdrop" id="ticket-modal">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header"><h3 id="modal-tk-num">Ticket</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('ticket-modal')">✕</button></div>
+    <div class="modal-body" id="modal-tk-body">Loading…</div>
+  </div>
+</div>
+
+<!-- ── New Ticket Modal ── -->
+<div class="modal-backdrop" id="new-ticket-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header"><h3>Create Ticket</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('new-ticket-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid" style="gap:16px">
+        <div class="form-group"><label>Title *</label><input type="text" id="nt-title" placeholder="e.g. Burst pipe in unit 4"/><span class="err" id="nt-title-err"></span></div>
+        <div class="form-grid cols-2">
+          <div class="form-group"><label>Property *</label><select id="nt-property" onchange="loadNtUnits()"><option value="">—</option></select><span class="err" id="nt-property-err"></span></div>
+          <div class="form-group"><label>Unit</label><select id="nt-unit"><option value="">— Optional —</option></select></div>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-group"><label>Category</label><select id="nt-category"><option value="">— Optional —</option></select></div>
+          <div class="form-group"><label>Priority</label><select id="nt-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
+        </div>
+        <div class="form-group"><label>Assign To (Technician)</label><select id="nt-assign"><option value="">— Unassigned —</option></select></div>
+        <div class="form-group"><label>Description</label><textarea id="nt-desc" rows="3" placeholder="Describe the issue…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('new-ticket-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-create-ticket" onclick="createTicket()">Create Ticket</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Schedule Modal ── -->
+<div class="modal-backdrop" id="sched-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Schedule</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('sched-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid" style="gap:16px">
+        <div class="form-group"><label>Title *</label><input type="text" id="sc-title" /><span class="err" id="sc-title-err"></span></div>
+        <div class="form-grid cols-2">
+          <div class="form-group"><label>Property *</label><select id="sc-property"><option value="">—</option></select><span class="err" id="sc-property-err"></span></div>
+          <div class="form-group"><label>Category</label><select id="sc-category"><option value="">— Optional —</option></select></div>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-group"><label>Frequency</label><select id="sc-freq"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="fortnightly">Fortnightly</option><option value="monthly" selected>Monthly</option><option value="quarterly">Quarterly</option><option value="biannual">Biannual</option><option value="yearly">Yearly</option></select></div>
+          <div class="form-group"><label>Next Due Date *</label><input type="date" id="sc-due"/><span class="err" id="sc-due-err"></span></div>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-group"><label>Assign To</label><select id="sc-tech"><option value="">— Unassigned —</option></select></div>
+          <div class="form-group"><label>Priority</label><select id="sc-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea id="sc-desc" rows="2"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('sched-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-create-sched" onclick="createSchedule()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Property Modal ── -->
+<div class="modal-backdrop" id="prop-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Property</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('prop-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid" style="gap:14px">
+        <div class="form-group"><label>Name *</label><input type="text" id="p-name" placeholder="Greenfields Estate"/><span class="err" id="p-name-err"></span></div>
+        <div class="form-group"><label>Address *</label><input type="text" id="p-address" placeholder="123 Main St"/><span class="err" id="p-address-err"></span></div>
+        <div class="form-grid cols-2">
+          <div class="form-group"><label>City</label><input type="text" id="p-city"/></div>
+          <div class="form-group"><label>Province</label><input type="text" id="p-province"/></div>
+        </div>
+        <div class="form-group"><label>Postal Code</label><input type="text" id="p-postal"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('prop-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-create-prop" onclick="createProperty()">Add Property</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Unit Modal ── -->
+<div class="modal-backdrop" id="unit-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Unit</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('unit-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid" style="gap:14px">
+        <div class="form-grid cols-2">
+          <div class="form-group"><label>Unit Number *</label><input type="text" id="u-number" placeholder="101"/><span class="err" id="u-number-err"></span></div>
+          <div class="form-group"><label>Floor</label><input type="number" id="u-floor" placeholder="1" min="0"/></div>
+        </div>
+        <div class="form-group"><label>Type</label><select id="u-type"><option value="apartment">Apartment</option><option value="house">House</option><option value="studio">Studio</option><option value="commercial">Commercial</option><option value="parking">Parking</option></select></div>
+        <div class="form-group"><label>Description</label><textarea id="u-desc" rows="2"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('unit-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-create-unit" onclick="createUnit()">Add Unit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Move-In Modal ── -->
+<div class="modal-backdrop" id="movein-modal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="movein-title">Move In Tenant</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('movein-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid" style="gap:14px">
+        <div class="form-group">
+          <label>Tenant *</label>
+          <select id="mi-tenant"><option value="">— Select tenant —</option></select>
+          <span class="err" id="mi-tenant-err"></span>
+        </div>
+        <div class="form-group"><label>Move-in Date *</label><input type="date" id="mi-date"/><span class="err" id="mi-date-err"></span></div>
+        <div class="form-group"><label>Notes</label><textarea id="mi-notes" rows="2"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('movein-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-movein" onclick="confirmMoveIn()">Confirm Move In</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── User Modal ── -->
+<div class="modal-backdrop" id="user-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>Add User</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('user-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid" style="gap:14px">
+        <div class="form-group"><label>Full Name *</label><input type="text" id="usr-name"/><span class="err" id="usr-name-err"></span></div>
+        <div class="form-grid cols-2">
+          <div class="form-group"><label>Email *</label><input type="text" id="usr-email"/><span class="err" id="usr-email-err"></span></div>
+          <div class="form-group"><label>Phone</label><input type="text" id="usr-phone"/></div>
+        </div>
+        <div class="form-group"><label>Role *</label><select id="usr-role"><option value="">— Select —</option><option value="tenant">Tenant</option><option value="technician">Technician</option><option value="maintenance_admin">Maintenance Admin</option><option value="manager">Manager</option></select><span class="err" id="usr-role-err"></span></div>
+        <div class="form-grid cols-2">
+          <div class="form-group"><label>Password *</label><input type="password" id="usr-pw"/><span class="err" id="usr-pw-err"></span></div>
+          <div class="form-group"><label>Confirm *</label><input type="password" id="usr-pw2"/><span class="err" id="usr-pw2-err"></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('user-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-create-user" onclick="createUser()">Create User</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast toast--success"><span class="toast__msg"></span></div>
+
+<script src="app.js"></script>
+<script src="javascript/manager.js"></script>
+</body>
+</html>
