@@ -4,7 +4,7 @@ document.getElementById('mobileAppName').textContent  = (typeof ENV !== 'undefin
 document.title = `${(typeof ENV !== 'undefined' && ENV.APP_NAME) || 'RentTrack'} — Tenant Portal`;
 
 if (typeof Auth !== 'undefined') {
-  if (!Auth.isLoggedIn()) { window.location.replace('login.html'); }
+  if (!Auth.isLoggedIn()) { window.location.replace('index.html'); }
   const user = Auth.user;
   if (user && !['tenant','staff'].includes(user.role)) { window.location.replace('caretaker.html'); }
   if (user) {
@@ -137,7 +137,7 @@ function showPage(id, navEl) {
 function logout() {
   if (typeof Auth !== 'undefined') Auth.clear();
   sessionStorage.setItem('rt_logged_out', '1');
-  window.location.replace('login.html');
+  window.location.replace('index.html');
 }
 
 /* ── Ticket Card Renderer ─────────────────────────────────── */

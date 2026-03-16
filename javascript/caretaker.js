@@ -4,9 +4,9 @@ document.getElementById('sb-app-name').textContent  = (typeof ENV!=='undefined'&
 document.getElementById('mobileAppName').textContent = (typeof ENV!=='undefined'&&ENV.APP_NAME)||'RentTrack';
 document.title = `${(typeof ENV!=='undefined'&&ENV.APP_NAME)||'RentTrack'} — Technician`;
 if(typeof Auth!=='undefined'){
-  if(!Auth.isLoggedIn()){window.location.href='login.html';}
+  if(!Auth.isLoggedIn()){window.location.href='index.html';}
   const user=Auth.user;
-  if(!['technician','staff'].includes(user?.role)){window.location.href='login.html';}
+  if(!['technician','staff'].includes(user?.role)){window.location.href='index';}
   if(user){document.getElementById('sb-name').textContent=user.name||'—';document.getElementById('sb-avatar').textContent=(user.name||'T')[0].toUpperCase();}
 }
 
@@ -84,7 +84,7 @@ function showPage(id,navEl){
   if(id==='completed')loadCompleted();
   if(id==='notifications')loadNotifications();
 }
-function logout(){if(typeof Auth!=='undefined')Auth.clear();window.location.href='login.html';}
+function logout(){if(typeof Auth!=='undefined')Auth.clear();window.location.href='index.html';}
 function refreshCurrent(){const a=document.querySelector('.page.active');if(a?.id==='page-jobs')loadJobs();if(a?.id==='page-completed')loadCompleted();if(a?.id==='page-notifications')loadNotifications();}
 
 /* My Jobs */

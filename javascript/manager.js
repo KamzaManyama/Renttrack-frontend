@@ -1,9 +1,9 @@
 document.getElementById('sb-app-name').textContent = ENV.APP_NAME || 'RentTrack';
 document.title = `${ENV.APP_NAME || 'RentTrack'} — Manager`;
 
-if (!Auth.isLoggedIn()) { window.location.href = 'login.html'; }
+if (!Auth.isLoggedIn()) { window.location.href = 'index.html'; }
 const user = Auth.user;
-if (!['manager','maintenance_admin'].includes(user?.role)) { window.location.href = 'login.html'; }
+if (!['manager','maintenance_admin'].includes(user?.role)) { window.location.href = 'index.html'; }
 
 document.getElementById('sb-name').textContent       = user?.name || '—';
 document.getElementById('sb-avatar').textContent     = (user?.name || 'M')[0].toUpperCase();
@@ -36,7 +36,7 @@ function showPage(id, navEl) {
   if (id==='notifications') loadNotifications();
 }
 
-function logout()       { Auth.clear(); sessionStorage.setItem('rt_logged_out','1'); window.location.replace('login.html'); }
+function logout()       { Auth.clear(); sessionStorage.setItem('rt_logged_out','1'); window.location.replace('index.html'); }
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) b.classList.remove('open'); }));
