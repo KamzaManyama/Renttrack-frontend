@@ -4,10 +4,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>RentTrack — Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css" />
 <link rel="stylesheet" href="style/manager.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="env.js"></script>
-
 </head>
 <body>
 
@@ -20,7 +23,7 @@
       </svg>
       <span class="sidebar-logo-name" id="sb-app-name">RentTrack</span>
     </div>
-    <div class="sidebar-role" id="sb-role-label">Management</div>
+    <div class="sidebar-role" id="sb-role-label">Manager Portal</div>
 
     <nav class="nav-section">
       <div class="nav-section-label">Overview</div>
@@ -28,13 +31,23 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         Dashboard
       </div>
+      <div class="nav-item" onclick="showPage('approvals',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Approvals
+        <span id="approvals-badge" style="display:none;margin-left:auto;background:#ef4444;color:white;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;min-width:18px;text-align:center">0</span>
+      </div>
     </nav>
 
     <nav class="nav-section">
-      <div class="nav-section-label">Operations</div>
+      <div class="nav-section-label">Maintenance</div>
       <div class="nav-item" onclick="showPage('tickets',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         Tickets
+        <span id="nav-tickets-badge" style="display:none;margin-left:auto;background:#ef4444;color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center"></span>
+      </div>
+      <div class="nav-item" onclick="showPage('metrics',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Ticket Metrics
       </div>
       <div class="nav-item" onclick="showPage('schedules',this)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -49,9 +62,10 @@
         Properties
       </div>
       <div class="nav-item" onclick="showPage('units',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
         Units &amp; Tenants
       </div>
+   
     </nav>
 
     <nav class="nav-section">
@@ -61,13 +75,14 @@
         Users
       </div>
       <div class="nav-item" onclick="showPage('reports',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Reports
       </div>
     </nav>
 
     <nav class="nav-section">
       <div class="nav-section-label">Account</div>
+     
       <div class="nav-item" onclick="showPage('notifications',this)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
         Notifications
@@ -77,11 +92,13 @@
 
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <div class="sidebar-user-avatar" id="sb-avatar">M</div>
-        <div>
-          <div class="sidebar-user-name" id="sb-name">Loading…</div>
-          <div class="sidebar-user-role" id="sb-role">—</div>
-        </div>
+        <button class="sidebar-user-info" onclick="showPage('profile', null)" title="View profile" style="display:flex;align-items:center;gap:10px;flex:1;background:none;border:none;cursor:pointer;padding:0;text-align:left;min-width:0">
+          <div class="sidebar-user-avatar" id="sb-avatar">M</div>
+          <div style="min-width:0;flex:1">
+            <div class="sidebar-user-name" id="sb-name">Loading...</div>
+            <div class="sidebar-user-role" id="sb-role">—</div>
+          </div>
+        </button>
         <button class="btn-logout" onclick="logout()" title="Sign out">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
@@ -95,156 +112,208 @@
       <div class="topbar-actions" id="topbar-actions"></div>
     </div>
 
-    <!-- ══ DASHBOARD ══ -->
+    <!-- ======== DASHBOARD ======== -->
     <section class="page active" id="page-dashboard">
       <div class="kpi-grid">
         <div class="kpi"><div class="kpi-label">Open Tickets</div><div class="kpi-value" id="k-open" style="color:#1d4ed8">—</div><div class="kpi-sub">Unresolved</div></div>
         <div class="kpi"><div class="kpi-label">In Progress</div><div class="kpi-value" id="k-progress" style="color:#b45309">—</div><div class="kpi-sub">Being worked on</div></div>
-        <div class="kpi"><div class="kpi-label">Urgent</div><div class="kpi-value" id="k-urgent" style="color:#b91c1c">—</div><div class="kpi-sub">Needs attention now</div></div>
+        <div class="kpi"><div class="kpi-label">Urgent</div><div class="kpi-value" id="k-urgent" style="color:#b91c1c">—</div><div class="kpi-sub">Needs attention</div></div>
         <div class="kpi"><div class="kpi-label">Completed Today</div><div class="kpi-value" id="k-done" style="color:#15803d">—</div><div class="kpi-sub">Resolved</div></div>
         <div class="kpi"><div class="kpi-label">Properties</div><div class="kpi-value" id="k-props">—</div><div class="kpi-sub">In portfolio</div></div>
-        <div class="kpi"><div class="kpi-label">Staff</div><div class="kpi-value" id="k-staff">—</div><div class="kpi-sub">Active technicians</div></div>
+        <div class="kpi"><div class="kpi-label">Active Staff</div><div class="kpi-value" id="k-staff">—</div><div class="kpi-sub">Technicians</div></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
         <div class="card">
-          <div class="card-header"><h3>Urgent Tickets</h3><button class="btn btn-ghost btn-sm" onclick="showPage('tickets',document.querySelectorAll('.nav-item')[1])">All tickets →</button></div>
+          <div class="card-header"><h3>Urgent &amp; High Priority Tickets</h3><button class="btn btn-ghost btn-sm" onclick="showPage('metrics',document.querySelectorAll('.nav-item')[1])">View metrics</button></div>
           <div class="table-wrap"><table>
             <thead><tr><th>Ticket</th><th>Title</th><th>Priority</th><th>Status</th></tr></thead>
-            <tbody id="dash-urgent"><tr class="loading-row"><td colspan="4">Loading…</td></tr></tbody>
+            <tbody id="dash-urgent"><tr class="loading-row"><td colspan="4">Loading...</td></tr></tbody>
           </table></div>
         </div>
         <div class="card">
-          <div class="card-header"><h3>Upcoming Maintenance</h3><button class="btn btn-ghost btn-sm" onclick="showPage('schedules',document.querySelectorAll('.nav-item')[2])">All →</button></div>
+          <div class="card-header"><h3>Upcoming Maintenance</h3><button class="btn btn-ghost btn-sm" onclick="showPage('schedules',document.querySelectorAll('.nav-item')[2])">All schedules</button></div>
           <div class="table-wrap"><table>
             <thead><tr><th>Title</th><th>Property</th><th>Due</th></tr></thead>
-            <tbody id="dash-sched"><tr class="loading-row"><td colspan="3">Loading…</td></tr></tbody>
+            <tbody id="dash-sched"><tr class="loading-row"><td colspan="3">Loading...</td></tr></tbody>
           </table></div>
         </div>
       </div>
     </section>
 
-    <!-- ══ TICKETS ══ -->
+
+    <!-- ======== TICKETS ======== -->
     <section class="page" id="page-tickets">
       <div class="page-header">
         <h2>Tickets</h2>
-        <button class="btn btn-primary btn-sm" onclick="openNewTicketModal()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          New Ticket
-        </button>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="search-input">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="Search tickets..." id="tk-search" oninput="renderTickets()" />
+          </div>
+          <select id="tk-property" onchange="renderTickets()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:white;outline:none">
+            <option value="">All properties</option>
+          </select>
+          <select id="tk-priority-filter" onchange="renderTickets()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:white;outline:none">
+            <option value="">All priorities</option>
+            <option value="urgent">Urgent</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <div class="filter-pills">
-          <span class="filter-pill active" data-status="" onclick="filterTk(this)">All</span>
-          <span class="filter-pill" data-status="open" onclick="filterTk(this)">Open</span>
-          <span class="filter-pill" data-status="assigned" onclick="filterTk(this)">Assigned</span>
-          <span class="filter-pill" data-status="in_progress" onclick="filterTk(this)">In Progress</span>
-          <span class="filter-pill" data-status="on_hold" onclick="filterTk(this)">On Hold</span>
-          <span class="filter-pill" data-status="completed" onclick="filterTk(this)">Completed</span>
-        </div>
-        <div class="search-input" style="margin-left:auto">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" placeholder="Search…" id="tk-search" oninput="renderTk()" />
-        </div>
-        <select id="tk-priority" onchange="renderTk()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:white;outline:none">
-          <option value="">All Priorities</option>
-          <option value="urgent">Urgent</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
+      <div class="filter-pills" style="margin-bottom:12px">
+        <span class="filter-pill active" data-tkstatus="" onclick="filterTickets(this)">All</span>
+        <span class="filter-pill" data-tkstatus="open" onclick="filterTickets(this)">Open</span>
+        <span class="filter-pill" data-tkstatus="assigned" onclick="filterTickets(this)">Assigned</span>
+        <span class="filter-pill" data-tkstatus="in_progress" onclick="filterTickets(this)">In Progress</span>
+        <span class="filter-pill" data-tkstatus="on_hold" onclick="filterTickets(this)">On Hold</span>
+        <span class="filter-pill" data-tkstatus="completed" onclick="filterTickets(this)">Completed</span>
       </div>
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Ticket #</th><th>Title</th><th>Property</th><th>Category</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Created</th><th></th></tr></thead>
-            <tbody id="tk-body"><tr class="loading-row"><td colspan="9">Loading…</td></tr></tbody>
+            <thead><tr><th>Ref</th><th>Issue</th><th>Property / Unit</th><th>Tenant</th><th>Priority</th><th>Status</th><th>Assigned To</th><th>Submitted</th><th></th></tr></thead>
+            <tbody id="tk-body"><tr class="loading-row"><td colspan="9">Loading...</td></tr></tbody>
           </table>
         </div>
         <div id="tk-pagination" style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)"></div>
       </div>
     </section>
 
-    <!-- ══ SCHEDULES ══ -->
+    <!-- ======== TICKET METRICS ======== -->
+    <section class="page" id="page-metrics">
+      <div class="page-header"><h2>Ticket Metrics</h2></div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="metricsTab('overview',this)">Overview</button>
+        <button class="tab-btn" onclick="metricsTab('technicians',this)">By Technician</button>
+        <button class="tab-btn" onclick="metricsTab('properties',this)">By Property</button>
+        <button class="tab-btn" onclick="metricsTab('costs',this)">Cost Summary</button>
+      </div>
+      <div id="metrics-content"><div style="text-align:center;padding:48px;color:var(--muted)">Select a tab above.</div></div>
+    </section>
+
+    <!-- ======== SCHEDULES ======== -->
     <section class="page" id="page-schedules">
       <div class="page-header">
         <h2>Maintenance Schedules</h2>
         <button class="btn btn-primary btn-sm" onclick="openSchedModal()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add Schedule
         </button>
       </div>
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Title</th><th>Property</th><th>Category</th><th>Frequency</th><th>Due Date</th><th>Assigned</th><th>Status</th><th></th></tr></thead>
-            <tbody id="sched-body"><tr class="loading-row"><td colspan="8">Loading…</td></tr></tbody>
+            <thead><tr><th>Title</th><th>Property</th><th>Category</th><th>Frequency</th><th>Next Due</th><th>Assigned</th><th>Status</th><th></th></tr></thead>
+            <tbody id="sched-body"><tr class="loading-row"><td colspan="8">Loading...</td></tr></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- ══ PROPERTIES ══ -->
+    <!-- ======== PROPERTIES ======== -->
     <section class="page" id="page-properties">
       <div class="page-header">
         <h2>Properties</h2>
-        <button class="btn btn-primary btn-sm" onclick="openModal('prop-modal')">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Property
-        </button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="openModal('prop-csv-modal')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import CSV
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('prop-modal')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Property
+          </button>
+        </div>
       </div>
-      <div id="prop-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px">
-        <div style="text-align:center;padding:48px;color:var(--muted)">Loading…</div>
+      <div id="prop-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px">
+        <div style="text-align:center;padding:48px;color:var(--muted)">Loading...</div>
       </div>
     </section>
 
-    <!-- ══ UNITS & TENANTS ══ -->
+    <!-- ======== UNITS & TENANTS ======== -->
     <section class="page" id="page-units">
-      <div class="page-header"><h2>Units &amp; Tenants</h2></div>
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:4px">
-        <select id="units-prop-filter" onchange="loadUnits()" style="padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:white;outline:none;min-width:220px">
-          <option value="">— Select a property —</option>
-        </select>
-        <button class="btn btn-primary btn-sm" id="btn-add-unit" onclick="openModal('unit-modal')" style="display:none">Add Unit</button>
+      <div class="page-header">
+        <h2>Units &amp; Tenants</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="units-prop-filter" onchange="loadUnits()" style="padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:white;outline:none;min-width:220px">
+            <option value="">— Select a property —</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="btn-add-unit" onclick="openModal('unit-modal')" style="display:none">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Unit
+          </button>
+        </div>
       </div>
+      <div id="units-summary" style="display:none;margin-bottom:16px"></div>
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Unit</th><th>Floor</th><th>Type</th><th>Current Tenant</th><th>Email</th><th>Phone</th><th>Move-in</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Unit</th><th>Type</th><th>Tenant</th><th>Email</th><th>Phone</th><th>Move-in</th><th>Status</th><th>Open Tickets</th></tr></thead>
             <tbody id="units-body"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted)">Select a property above to view units.</td></tr></tbody>
           </table>
         </div>
+        <div id="units-pagination" style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)"></div>
       </div>
     </section>
 
-    <!-- ══ USERS ══ -->
+    <!-- ======== BILLING ======== -->
+    <section class="page" id="page-billing">
+      <div class="page-header"><h2>Billing &amp; Payments</h2></div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="billingTab('invoices',this)">Invoices</button>
+        <button class="tab-btn" onclick="billingTab('payments',this)">Payments</button>
+        <button class="tab-btn" onclick="billingTab('summary',this)">Summary</button>
+      </div>
+      <div id="billing-content"><div style="text-align:center;padding:48px;color:var(--muted)">Loading billing data...</div></div>
+    </section>
+
+    <!-- ======== USERS ======== -->
     <section class="page" id="page-users">
       <div class="page-header">
         <h2>Users</h2>
-        <button class="btn btn-primary btn-sm" onclick="openUserModal()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add User
-        </button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="downloadUserTemplate()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            CSV Template
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="openModal('user-csv-modal')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import CSV
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openUserModal()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add User
+          </button>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:4px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
         <div class="filter-pills">
           <span class="filter-pill active" data-role="" onclick="filterUsers(this)">All</span>
           <span class="filter-pill" data-role="manager" onclick="filterUsers(this)">Managers</span>
-          <span class="filter-pill" data-role="maintenance_admin" onclick="filterUsers(this)">Maintenance Admin</span>
+          <span class="filter-pill" data-role="maintenance_admin" onclick="filterUsers(this)">Maint. Admin</span>
           <span class="filter-pill" data-role="technician" onclick="filterUsers(this)">Technicians</span>
-          <span class="filter-pill" data-role="tenant" onclick="filterUsers(this)">Tenants</span>
+          <span class="filter-pill" data-role="property_owner" onclick="filterUsers(this)">Property Owners</span>
+
+        </div>
+        <div class="search-input" style="margin-left:auto">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search users..." id="user-search" oninput="renderUsers()" />
         </div>
       </div>
       <div class="card">
         <div class="table-wrap">
           <table>
             <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Status</th><th>Last Login</th><th>Actions</th></tr></thead>
-            <tbody id="users-body"><tr class="loading-row"><td colspan="7">Loading…</td></tr></tbody>
+            <tbody id="users-body"><tr class="loading-row"><td colspan="7">Loading...</td></tr></tbody>
           </table>
         </div>
+        <div id="users-pagination" style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)"></div>
       </div>
     </section>
 
-    <!-- ══ REPORTS ══ -->
+    <!-- ======== REPORTS ======== -->
     <section class="page" id="page-reports">
       <div class="page-header"><h2>Reports</h2></div>
       <div class="tab-bar">
@@ -255,52 +324,170 @@
       <div id="report-content"><div style="text-align:center;padding:48px;color:var(--muted)">Select a tab above.</div></div>
     </section>
 
-    <!-- ══ NOTIFICATIONS ══ -->
+    <!-- ======== PROFILE ======== -->
+    <section class="page" id="page-profile">
+      <div class="page-header"><h2>My Profile</h2></div>
+      <div style="display:grid;grid-template-columns:280px 1fr;gap:24px">
+        <div>
+          <div class="card" style="text-align:center;padding:24px">
+            <div id="profile-avatar" style="width:96px;height:96px;border-radius:50%;margin:0 auto 16px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:white;font-size:36px;font-weight:700">M</div>
+            <div id="profile-name-display" style="font-size:17px;font-weight:700;margin-bottom:4px">Manager</div>
+            <div id="profile-email-display" style="color:var(--muted);font-size:13px;margin-bottom:16px">—</div>
+            <button class="btn btn-outline btn-sm" style="width:100%" onclick="document.getElementById('photo-upload').click()">Change Photo</button>
+            <input type="file" id="photo-upload" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">
+            <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;text-align:left">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px">
+                <span style="color:var(--muted)">Role</span><span style="font-weight:600" id="profile-role-display">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:12px">
+                <span style="color:var(--muted)">Last login</span><span style="font-weight:600" id="profile-last-login">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-header"><h3>Personal Information</h3></div>
+            <div class="card-body">
+              <div class="form-grid" style="gap:16px">
+                <div class="form-grid cols-2">
+                  <div class="form-group"><label>Full Name</label><input type="text" id="profile-name" /></div>
+                  <div class="form-group"><label>Email Address</label><input type="email" id="profile-email" /></div>
+                </div>
+                <div class="form-group"><label>Phone Number</label><input type="tel" id="profile-phone" /></div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-header"><h3>Change Password</h3></div>
+            <div class="card-body">
+              <div class="form-grid" style="gap:14px">
+                <div class="form-group">
+                  <label>Current Password</label>
+                  <div class="pw-wrap"><input type="password" id="current-password" placeholder="Enter current password"><span class="pw-toggle" onclick="togglePassword('current-password')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span></div>
+                </div>
+                <div class="form-grid cols-2">
+                  <div class="form-group">
+                    <label>New Password</label>
+                    <div class="pw-wrap"><input type="password" id="new-password" placeholder="Min 8 characters"><span class="pw-toggle" onclick="togglePassword('new-password')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span></div>
+                  </div>
+                  <div class="form-group">
+                    <label>Confirm Password</label>
+                    <div class="pw-wrap"><input type="password" id="confirm-password" placeholder="Repeat new password"><span class="pw-toggle" onclick="togglePassword('confirm-password')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;justify-content:flex-end">
+            <button class="btn btn-outline" onclick="loadProfile()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveProfileChanges()">Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== APPROVALS ======== -->
+    <section class="page" id="page-approvals">
+      <div class="page-header">
+        <h2>Registration Approvals</h2>
+        <div style="display:flex;gap:8px">
+          <div class="filter-pills">
+            <span class="filter-pill active" data-regstatus="pending" onclick="filterRegs(this)">Pending</span>
+            <span class="filter-pill" data-regstatus="approved" onclick="filterRegs(this)">Approved</span>
+            <span class="filter-pill" data-regstatus="rejected" onclick="filterRegs(this)">Rejected</span>
+            <span class="filter-pill" data-regstatus="" onclick="filterRegs(this)">All</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Property</th><th>Unit</th><th>ID Number</th><th>Document</th><th>Submitted</th><th>Status</th><th></th></tr></thead>
+            <tbody id="regs-body"><tr class="loading-row"><td colspan="10">Loading...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="regs-pagination" style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)"></div>
+      </div>
+    </section>
+
+    <!-- ======== NOTIFICATIONS ======== -->
     <section class="page" id="page-notifications">
-      <div class="page-header"><h2>Notifications</h2><button class="btn btn-outline btn-sm" onclick="markAllRead()">Mark all read</button></div>
-      <div class="card"><div id="notif-list"><div style="text-align:center;padding:48px;color:var(--muted)">Loading…</div></div></div>
+      <div class="page-header">
+        <h2>Notifications</h2>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="markAllRead()">Mark all read</button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('compose-modal')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Send Notification
+          </button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
+        <div class="card">
+          <div class="card-header" style="border-bottom:1px solid var(--border);padding-bottom:12px">
+            <h3>Inbox</h3>
+            <div class="filter-pills" style="margin:0">
+              <span class="filter-pill active" data-nfilter="all" onclick="filterNotifs(this)">All</span>
+              <span class="filter-pill" data-nfilter="unread" onclick="filterNotifs(this)">Unread</span>
+              <span class="filter-pill" data-nfilter="system" onclick="filterNotifs(this)">System</span>
+              <span class="filter-pill" data-nfilter="maintenance" onclick="filterNotifs(this)">Maintenance</span>
+            </div>
+          </div>
+          <div id="notif-list"><div style="text-align:center;padding:48px;color:var(--muted)">Loading...</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="card">
+            <div class="card-header"><h3>Quick Broadcast</h3></div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+              <div class="form-group">
+                <label>Send to</label>
+                <select id="quick-recipients" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none">
+                  <option value="all">All users</option>
+                  <option value="manager">Managers only</option>
+                  <option value="technician">Technicians only</option>
+                  <option value="maintenance_admin">Maintenance admins</option>
+                  <option value="property_owner">Property owners</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Message</label>
+                <textarea id="quick-message" rows="3" placeholder="Type a quick message to send..." style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;resize:none;outline:none;box-sizing:border-box"></textarea>
+              </div>
+              <button class="btn btn-primary btn-sm" style="width:100%" onclick="sendQuickBroadcast()">Send Broadcast</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Notification Types</h3></div>
+            <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;font-size:13px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+                <span>Maintenance due reminders</span>
+                <label class="toggle-switch"><input type="checkbox" id="notif-toggle-maintenance" checked onchange="saveNotifPrefs()"><span class="toggle-slider"></span></label>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+                <span>New ticket created</span>
+                <label class="toggle-switch"><input type="checkbox" id="notif-toggle-tickets" checked onchange="saveNotifPrefs()"><span class="toggle-slider"></span></label>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+                <span>Urgent ticket alerts</span>
+                <label class="toggle-switch"><input type="checkbox" id="notif-toggle-urgent" checked onchange="saveNotifPrefs()"><span class="toggle-slider"></span></label>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+                <span>Tenant move in / out</span>
+                <label class="toggle-switch"><input type="checkbox" id="notif-toggle-occupancy" checked onchange="saveNotifPrefs()"><span class="toggle-slider"></span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   </div>
 </div>
 
-<!-- ── Ticket Modal (view/manage) ── -->
-<div class="modal-backdrop" id="ticket-modal">
-  <div class="modal" style="max-width:700px">
-    <div class="modal-header"><h3 id="modal-tk-num">Ticket</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('ticket-modal')">✕</button></div>
-    <div class="modal-body" id="modal-tk-body">Loading…</div>
-  </div>
-</div>
-
-<!-- ── New Ticket Modal ── -->
-<div class="modal-backdrop" id="new-ticket-modal">
-  <div class="modal" style="max-width:560px">
-    <div class="modal-header"><h3>Create Ticket</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('new-ticket-modal')">✕</button></div>
-    <div class="modal-body">
-      <div class="form-grid" style="gap:16px">
-        <div class="form-group"><label>Title *</label><input type="text" id="nt-title" placeholder="e.g. Burst pipe in unit 4"/><span class="err" id="nt-title-err"></span></div>
-        <div class="form-grid cols-2">
-          <div class="form-group"><label>Property *</label><select id="nt-property" onchange="loadNtUnits()"><option value="">—</option></select><span class="err" id="nt-property-err"></span></div>
-          <div class="form-group"><label>Unit</label><select id="nt-unit"><option value="">— Optional —</option></select></div>
-        </div>
-        <div class="form-grid cols-2">
-          <div class="form-group"><label>Category</label><select id="nt-category"><option value="">— Optional —</option></select></div>
-          <div class="form-group"><label>Priority</label><select id="nt-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
-        </div>
-        <div class="form-group"><label>Assign To (Technician)</label><select id="nt-assign"><option value="">— Unassigned —</option></select></div>
-        <div class="form-group"><label>Description</label><textarea id="nt-desc" rows="3" placeholder="Describe the issue…"></textarea></div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('new-ticket-modal')">Cancel</button>
-      <button class="btn btn-primary" id="btn-create-ticket" onclick="createTicket()">Create Ticket</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── Schedule Modal ── -->
+<!-- ===== SCHEDULE MODAL ===== -->
 <div class="modal-backdrop" id="sched-modal">
   <div class="modal">
-    <div class="modal-header"><h3>Add Schedule</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('sched-modal')">✕</button></div>
+    <div class="modal-header"><h3>Add Maintenance Schedule</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('sched-modal')">x</button></div>
     <div class="modal-body">
       <div class="form-grid" style="gap:16px">
         <div class="form-group"><label>Title *</label><input type="text" id="sc-title" /><span class="err" id="sc-title-err"></span></div>
@@ -321,37 +508,130 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('sched-modal')">Cancel</button>
-      <button class="btn btn-primary" id="btn-create-sched" onclick="createSchedule()">Create</button>
+      <button class="btn btn-primary" id="btn-create-sched" onclick="createSchedule()">Create Schedule</button>
     </div>
   </div>
 </div>
 
-<!-- ── Property Modal ── -->
+<!-- ===== PROPERTY MODAL ===== -->
 <div class="modal-backdrop" id="prop-modal">
-  <div class="modal">
-    <div class="modal-header"><h3>Add Property</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('prop-modal')">✕</button></div>
-    <div class="modal-body">
-      <div class="form-grid" style="gap:14px">
-        <div class="form-group"><label>Name *</label><input type="text" id="p-name" placeholder="Greenfields Estate"/><span class="err" id="p-name-err"></span></div>
-        <div class="form-group"><label>Address *</label><input type="text" id="p-address" placeholder="123 Main St"/><span class="err" id="p-address-err"></span></div>
-        <div class="form-grid cols-2">
-          <div class="form-group"><label>City</label><input type="text" id="p-city"/></div>
-          <div class="form-group"><label>Province</label><input type="text" id="p-province"/></div>
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <h3>Add Property</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('prop-modal')">x</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <!-- Tabs -->
+      <div style="display:flex;border-bottom:1px solid var(--border);padding:0 24px">
+        <button class="prop-modal-tab active" data-tab="details" onclick="switchPropTab('details',this)" style="padding:12px 16px;font-size:13px;font-weight:600;background:none;border:none;border-bottom:2px solid var(--blue);color:var(--blue);cursor:pointer;margin-bottom:-1px">Property Details</button>
+        <button class="prop-modal-tab" data-tab="units" onclick="switchPropTab('units',this)" style="padding:12px 16px;font-size:13px;font-weight:600;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;margin-bottom:-1px">Units <span id="prop-unit-count" style="background:#e2e8f0;color:#475569;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px">0</span></button>
+      </div>
+
+      <!-- Details tab -->
+      <div id="prop-tab-details" style="padding:20px 24px">
+        <div class="form-grid" style="gap:14px">
+          <div class="form-grid cols-2">
+            <div class="form-group"><label>Property Name *</label><input type="text" id="p-name" placeholder="Greenfields Estate"/><span class="err" id="p-name-err"></span></div>
+            <div class="form-group"><label>Owner Name</label><input type="text" id="p-owner" placeholder="e.g. John Dlamini"/></div>
+          </div>
+          <div class="form-group"><label>Street Address *</label><input type="text" id="p-address" placeholder="123 Main Street"/><span class="err" id="p-address-err"></span></div>
+          <div class="form-grid cols-2">
+            <div class="form-group"><label>City</label><input type="text" id="p-city"/></div>
+            <div class="form-group"><label>Province</label><input type="text" id="p-province"/></div>
+          </div>
+          <div class="form-grid cols-2">
+            <div class="form-group"><label>Postal Code</label><input type="text" id="p-postal"/></div>
+            <div class="form-group"><label>Property Type</label>
+              <select id="p-type">
+                <option value="residential">Residential</option>
+                <option value="commercial">Commercial</option>
+                <option value="mixed">Mixed Use</option>
+                <option value="industrial">Industrial</option>
+                <option value="student">Student Accommodation</option>
+                <option value="short_stay">Short Stay / Guesthouse</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label>Description</label><textarea id="p-desc" rows="2" placeholder="Optional notes..."></textarea></div>
         </div>
-        <div class="form-group"><label>Postal Code</label><input type="text" id="p-postal"/></div>
+        <div style="margin-top:16px;padding:12px 14px;background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:10px;font-size:13px;color:#0369a1">
+          After saving the property, switch to the <strong>Units tab</strong> to add units — or come back later from the Properties page.
+        </div>
+      </div>
+
+      <!-- Units tab -->
+      <div id="prop-tab-units" style="display:none;padding:20px 24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <span style="font-size:13px;color:var(--muted)">Add units to this property before saving, or add them later.</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" onclick="openBulkUnitEntry()">Bulk add rows</button>
+            <button class="btn btn-primary btn-sm" onclick="addInlineUnit()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Unit
+            </button>
+          </div>
+        </div>
+        <div id="inline-units-list" style="display:flex;flex-direction:column;gap:8px;min-height:60px">
+          <div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;border:1.5px dashed var(--border);border-radius:10px" id="no-units-placeholder">No units added yet. Click "Add Unit" to start.</div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="switchPropTab('units', document.querySelector('[data-tab=units]'))" id="btn-go-units" style="margin-right:auto;display:none">Add units →</button>
       <button class="btn btn-outline" onclick="closeModal('prop-modal')">Cancel</button>
-      <button class="btn btn-primary" id="btn-create-prop" onclick="createProperty()">Add Property</button>
+      <button class="btn btn-primary" id="btn-create-prop" onclick="createPropertyWithUnits()">Save Property</button>
     </div>
   </div>
 </div>
 
-<!-- ── Unit Modal ── -->
+<!-- ===== BULK IMPORT MODAL ===== -->
+<div class="modal-backdrop" id="prop-csv-modal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header"><h3>Bulk Import</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('prop-csv-modal')">x</button></div>
+    <div class="modal-body" style="padding:0">
+      <!-- Import type tabs -->
+      <div style="display:flex;border-bottom:1px solid var(--border);padding:0 24px">
+        <button class="bulk-tab active" data-btab="properties" onclick="switchBulkTab('properties',this)" style="padding:11px 16px;font-size:13px;font-weight:600;background:none;border:none;border-bottom:2px solid var(--blue);color:var(--blue);cursor:pointer;margin-bottom:-1px">Properties</button>
+        <button class="bulk-tab" data-btab="properties-units" onclick="switchBulkTab('properties-units',this)" style="padding:11px 16px;font-size:13px;font-weight:600;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;margin-bottom:-1px">Properties + Units</button>
+        <button class="bulk-tab" data-btab="units-only" onclick="switchBulkTab('units-only',this)" style="padding:11px 16px;font-size:13px;font-weight:600;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;margin-bottom:-1px">Units only</button>
+        <button class="bulk-tab" data-btab="tenants" onclick="switchBulkTab('tenants',this)" style="padding:11px 16px;font-size:13px;font-weight:600;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;margin-bottom:-1px">Tenants</button>
+      </div>
+
+      <div style="padding:20px 24px">
+        <!-- Info box changes per tab -->
+        <div id="bulk-info-box" style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#0369a1">
+          <strong>Required columns:</strong> property_name, address<br>
+          <strong>Optional:</strong> city, province, postal_code, owner_name, type, description
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="downloadBulkTemplate()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Template
+          </button>
+          <span style="font-size:12px;color:var(--muted);align-self:center">First row must be the header. Existing records are updated by name/email.</span>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px">
+          <label>Upload CSV File *</label>
+          <input type="file" id="bulk-csv-file" accept=".csv,.xlsx" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px" onchange="previewBulkCSV(event)">
+        </div>
+
+        <div id="bulk-csv-preview"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div id="bulk-import-summary" style="margin-right:auto;font-size:12px;color:var(--muted)"></div>
+      <button class="btn btn-outline" onclick="closeModal('prop-csv-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-import-bulk" onclick="runBulkImport()" disabled>Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== UNIT MODAL ===== -->
 <div class="modal-backdrop" id="unit-modal">
   <div class="modal">
-    <div class="modal-header"><h3>Add Unit</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('unit-modal')">✕</button></div>
+    <div class="modal-header"><h3>Add Unit</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('unit-modal')">x</button></div>
     <div class="modal-body">
       <div class="form-grid" style="gap:14px">
         <div class="form-grid cols-2">
@@ -369,19 +649,15 @@
   </div>
 </div>
 
-<!-- ── Move-In Modal ── -->
+<!-- ===== MOVE-IN MODAL ===== -->
 <div class="modal-backdrop" id="movein-modal">
   <div class="modal">
-    <div class="modal-header"><h3 id="movein-title">Move In Tenant</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('movein-modal')">✕</button></div>
+    <div class="modal-header"><h3>Move In Tenant</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('movein-modal')">x</button></div>
     <div class="modal-body">
       <div class="form-grid" style="gap:14px">
-        <div class="form-group">
-          <label>Tenant *</label>
-          <select id="mi-tenant"><option value="">— Select tenant —</option></select>
-          <span class="err" id="mi-tenant-err"></span>
-        </div>
+        <div class="form-group"><label>Select Tenant *</label><select id="mi-tenant"><option value="">— Select tenant —</option></select><span class="err" id="mi-tenant-err"></span></div>
         <div class="form-group"><label>Move-in Date *</label><input type="date" id="mi-date"/><span class="err" id="mi-date-err"></span></div>
-        <div class="form-group"><label>Notes</label><textarea id="mi-notes" rows="2"></textarea></div>
+        <div class="form-group"><label>Notes</label><textarea id="mi-notes" rows="2" placeholder="Optional notes..."></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -391,34 +667,218 @@
   </div>
 </div>
 
-<!-- ── User Modal ── -->
+<!-- ===== USER MODAL ===== -->
 <div class="modal-backdrop" id="user-modal">
-  <div class="modal">
-    <div class="modal-header"><h3>Add User</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('user-modal')">✕</button></div>
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header"><h3 id="user-modal-title">Add User</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('user-modal')">x</button></div>
     <div class="modal-body">
+      <div id="usr-welcome-note" style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#15803d">
+        A welcome email with a password setup link will be sent automatically. For property owners, this gives them access to the owner portal.
+      </div>
       <div class="form-grid" style="gap:14px">
-        <div class="form-group"><label>Full Name *</label><input type="text" id="usr-name"/><span class="err" id="usr-name-err"></span></div>
         <div class="form-grid cols-2">
-          <div class="form-group"><label>Email *</label><input type="text" id="usr-email"/><span class="err" id="usr-email-err"></span></div>
-          <div class="form-group"><label>Phone</label><input type="text" id="usr-phone"/></div>
+          <div class="form-group"><label>First Name *</label><input type="text" id="usr-firstname" placeholder="e.g. John"/><span class="err" id="usr-firstname-err"></span></div>
+          <div class="form-group"><label>Last Name *</label><input type="text" id="usr-lastname" placeholder="e.g. Smith"/><span class="err" id="usr-lastname-err"></span></div>
         </div>
-        <div class="form-group"><label>Role *</label><select id="usr-role"><option value="">— Select —</option><option value="tenant">Tenant</option><option value="technician">Technician</option><option value="maintenance_admin">Maintenance Admin</option><option value="manager">Manager</option></select><span class="err" id="usr-role-err"></span></div>
         <div class="form-grid cols-2">
-          <div class="form-group"><label>Password *</label><input type="password" id="usr-pw"/><span class="err" id="usr-pw-err"></span></div>
-          <div class="form-group"><label>Confirm *</label><input type="password" id="usr-pw2"/><span class="err" id="usr-pw2-err"></span></div>
+          <div class="form-group"><label>Email Address *</label><input type="text" id="usr-email" placeholder="john@company.com"/><span class="err" id="usr-email-err"></span></div>
+          <div class="form-group"><label>Phone Number</label><input type="text" id="usr-phone" placeholder="082 123 4567"/></div>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-group"><label>Role *</label>
+            <select id="usr-role">
+              <option value="">— Select role —</option>
+              <option value="technician">Technician</option>
+              <option value="maintenance_admin">Maintenance Admin</option>
+              <option value="manager">Manager</option>
+              <option value="property_owner">Property Owner</option>
+            </select>
+            <span class="err" id="usr-role-err"></span>
+          </div>
+          <div class="form-group"><label>Status</label>
+            <select id="usr-status">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-group"><label>ID / Passport Number</label><input type="text" id="usr-id-number" placeholder="SA ID or passport number"/></div>
+          <div class="form-group"><label>Employee Number</label><input type="text" id="usr-employee-num" placeholder="e.g. EMP-001"/></div>
+        </div>
+        <div id="usr-pw-section" style="display:none">
+          <div style="background:#fef9c3;border:1.5px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12.5px;color:#92400e">
+            Leave password fields blank to keep the current password unchanged.
+          </div>
+          <div class="form-grid cols-2">
+            <div class="form-group"><label>New Password</label><div class="pw-wrap"><input type="password" id="usr-pw" placeholder="Min 8 characters"/><span class="pw-toggle" onclick="togglePassword('usr-pw')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span></div><span class="err" id="usr-pw-err"></span></div>
+            <div class="form-group"><label>Confirm Password</label><div class="pw-wrap"><input type="password" id="usr-pw2" placeholder="Repeat password"/><span class="pw-toggle" onclick="togglePassword('usr-pw2')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span></div><span class="err" id="usr-pw2-err"></span></div>
+          </div>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('user-modal')">Cancel</button>
-      <button class="btn btn-primary" id="btn-create-user" onclick="createUser()">Create User</button>
+      <button class="btn btn-primary" id="btn-create-user" onclick="submitUserModal()">Create &amp; Send Welcome</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== USER CSV IMPORT MODAL ===== -->
+<div class="modal-backdrop" id="user-csv-modal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header"><h3>Bulk Import Users via CSV</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('user-csv-modal')">x</button></div>
+    <div class="modal-body">
+      <div class="csv-info-box" style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#0369a1">
+        <strong>Required columns:</strong> name, email, role, password<br>
+        <strong>Optional columns:</strong> phone, status<br>
+        <span style="color:#64748b;margin-top:4px;display:block">If a user with the same email exists, they will be updated with the new data. If password is blank for existing users, it will not be changed.</span>
+      </div>
+      <div style="background:#fef3c7;border:1.5px solid #fcd34d;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12.5px;color:#92400e">
+        <strong>Valid roles:</strong> technician, maintenance_admin, manager, property_owner<br>
+        <strong>Valid status values:</strong> active, inactive, suspended (defaults to active)
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <button class="btn btn-outline btn-sm" onclick="downloadUserTemplate()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download CSV Template
+        </button>
+      </div>
+      <div class="form-group">
+        <label>Upload CSV File *</label>
+        <input type="file" id="user-csv-file" accept=".csv" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px" onchange="previewUserCSV(event)">
+      </div>
+      <div id="user-csv-preview" style="margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('user-csv-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-import-users" onclick="importUsersCSV()" disabled>Import Users</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== COMPOSE NOTIFICATION MODAL ===== -->
+<div class="modal-backdrop" id="compose-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header"><h3>Send Notification</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('compose-modal')">x</button></div>
+    <div class="modal-body">
+      <div class="form-grid" style="gap:14px">
+        <div class="form-group">
+          <label>Title *</label>
+          <input type="text" id="cn-title" placeholder="e.g. Scheduled maintenance this weekend"/>
+          <span class="err" id="cn-title-err"></span>
+        </div>
+        <div class="form-grid cols-2">
+          <div class="form-group">
+            <label>Send to *</label>
+            <select id="cn-recipients">
+              <option value="all">All users</option>
+              <option value="manager">Managers only</option>
+              <option value="technician">Technicians only</option>
+              <option value="maintenance_admin">Maintenance admins</option>
+              <option value="property_owner">Property owners</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select id="cn-type">
+              <option value="general">General</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="urgent">Urgent</option>
+              <option value="system">System</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Message *</label>
+          <textarea id="cn-message" rows="4" placeholder="Write your notification message here..."></textarea>
+          <span class="err" id="cn-message-err"></span>
+        </div>
+        <div id="cn-preview" style="display:none;background:#f8fafc;border:1.5px solid var(--border);border-radius:10px;padding:14px 16px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">Preview</div>
+          <div id="cn-preview-title" style="font-weight:700;font-size:14px;margin-bottom:4px"></div>
+          <div id="cn-preview-message" style="font-size:13px;color:var(--text-2);line-height:1.5"></div>
+          <div id="cn-preview-meta" style="font-size:11px;color:var(--muted);margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn btn-ghost btn-sm" onclick="previewNotification()">Preview</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" onclick="closeModal('compose-modal')">Cancel</button>
+        <button class="btn btn-primary" id="btn-send-notif" onclick="sendNotification()">Send Notification</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Toggle switch */
+.toggle-switch { position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0 }
+.toggle-switch input { opacity:0;width:0;height:0 }
+.toggle-slider { position:absolute;cursor:pointer;inset:0;background:#e2e8f0;border-radius:22px;transition:.2s }
+.toggle-slider:before { position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2) }
+.toggle-switch input:checked + .toggle-slider { background:var(--blue) }
+.toggle-switch input:checked + .toggle-slider:before { transform:translateX(18px) }
+
+/* Sidebar user info hover */
+.sidebar-user-info:hover .sidebar-user-avatar { opacity:.85 }
+.sidebar-user-info:hover .sidebar-user-name { color:var(--blue) }
+</style>
+
+<!-- ===== TICKET DETAIL MODAL ===== -->
+<div class="modal-backdrop" id="ticket-detail-modal">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <h3 id="tdm-ref" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted)">Ticket</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('ticket-detail-modal')">x</button>
+    </div>
+    <div class="modal-body" id="tdm-body">
+      <div style="text-align:center;padding:48px;color:var(--muted)">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== REJECT REGISTRATION MODAL ===== -->
+<div class="modal-backdrop" id="reject-modal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header"><h3>Reject Registration</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('reject-modal')">x</button></div>
+    <div class="modal-body">
+      <p style="color:var(--text-2);font-size:13.5px;margin-bottom:14px">The applicant will be notified that their registration was not approved.</p>
+      <div class="form-group">
+        <label>Reason (optional)</label>
+        <textarea id="reject-reason" rows="3" placeholder="e.g. Unit already occupied, incomplete documents..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('reject-modal')">Cancel</button>
+      <button class="btn btn-danger" id="btn-confirm-reject" onclick="confirmReject()">Reject Registration</button>
     </div>
   </div>
 </div>
 
 <div id="toast" class="toast toast--success"><span class="toast__msg"></span></div>
 
+<!--===================================================================================================================================-->
+<!-- Scripts -->
+<!--===================================================================================================================================-->
+
 <script src="app.js"></script>
 <script src="javascript/manager.js"></script>
+<script src="javascript/manager/manager-dashboard.js"></script>
+<script src="javascript/manager/manager-properties.js"></script>
+<script src="javascript/manager/manager-users.js"></script>
+<script src="javascript/manager/manager-schedules.js"></script>
+<script src="javascript/manager/manager-billing.js"></script>
+<script src="javascript/manager/manager-profile.js"></script>
+<script src="javascript/manager/manager-approvals.js"></script>
+<script src="javascript/manager/manager-tickets.js"></script>
+<script src="javascript/manager/manager-bulk-import.js"></script>
+
+<!--===================================================================================================================================-->
+<!--===================================================================================================================================-->
+
 </body>
 </html>

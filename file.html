@@ -1,0 +1,187 @@
+  <!-- ══ PENDING APPROVALS ══ -->
+    <section class="page" id="page-approvals">
+      <div class="page-header">
+        <h2>Pending Approvals</h2>
+        <div class="approval-filters">
+          <select id="approval-type-filter" onchange="filterApprovals()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;">
+            <option value="all">All Types</option>
+            <option value="delete_company">Delete Company</option>
+            <option value="remove_property">Remove Property</option>
+            <option value="suspend_manager">Suspend Manager</option>
+            <option value="export_data">Export Data</option>
+            <option value="lockdown_company">Lockdown Company</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Approval Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card">
+          <div class="stat-card-label">Pending Requests</div>
+          <div class="stat-card-value" id="pending-count" style="color:var(--sa-accent)">3</div>
+          <div class="stat-card-sub">Awaiting approval</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Approved Today</div>
+          <div class="stat-card-value" id="approved-today" style="color:#059669">2</div>
+          <div class="stat-card-sub">Last 24 hours</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Expiring Soon</div>
+          <div class="stat-card-value" id="expiring-soon" style="color:#b45309">1</div>
+          <div class="stat-card-sub">Next 6 hours</div>
+        </div>
+      </div>
+
+      <!-- Approval Requests List -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Requests Requiring Your Approval</h3>
+          <div class="search-input">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="Search requests..." id="approval-search" onkeyup="filterApprovals()">
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Request</th>
+                <th>Requested By</th>
+                <th>Target</th>
+                <th>Reason</th>
+                <th>Time Left</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="approvals-body">
+              <!-- Sample Row 1 - Delete Company -->
+              <tr class="approval-row urgency-high">
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="badge" style="background:#fee2e2;color:#b91c1c;border:none;">Delete Company</span>
+                  </div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <div class="sidebar-user-avatar" style="width:24px;height:24px;font-size:10px;background:var(--sa-grad);">S</div>
+                    <span>Super Admin 2</span>
+                  </div>
+                </td>
+                <td><strong>UrbanNest Braamfontein</strong></td>
+                <td><span class="approval-reason" title="Company requested deletion - closed business">Company requested deletion</span></td>
+                <td>
+                  <span class="time-urgent">2h left</span>
+                </td>
+                <td>
+                  <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="viewApprovalDetails('del_001')" style="color:var(--sa-accent);">Review</button>
+                    <button class="quick-action-btn" onclick="approveQuick('del_001')" style="background:#dcfce7;color:#166534;">✓</button>
+                    <button class="quick-action-btn" onclick="rejectQuick('del_001')" style="background:#fee2e2;color:#b91c1c;">✗</button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Sample Row 2 - Suspend Manager -->
+              <tr class="approval-row urgency-medium">
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="badge" style="background:#fef3c7;color:#b45309;border:none;">Suspend Manager</span>
+                  </div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <div class="sidebar-user-avatar" style="width:24px;height:24px;font-size:10px;background:var(--sa-grad);">A</div>
+                    <span>Super Admin 1</span>
+                  </div>
+                </td>
+                <td><strong>thabo@sunset.co.za</strong> (Sunset Properties)</td>
+                <td><span class="approval-reason" title="Multiple complaints from tenants">Multiple tenant complaints</span></td>
+                <td>
+                  <span class="time-warning">12h left</span>
+                </td>
+                <td>
+                  <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="viewApprovalDetails('sus_001')" style="color:var(--sa-accent);">Review</button>
+                    <button class="quick-action-btn" onclick="approveQuick('sus_001')" style="background:#dcfce7;color:#166534;">✓</button>
+                    <button class="quick-action-btn" onclick="rejectQuick('sus_001')" style="background:#fee2e2;color:#b91c1c;">✗</button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Sample Row 3 - Export Data -->
+              <tr class="approval-row urgency-low">
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="badge" style="background:#e0f2fe;color:#0369a1;border:none;">Export Data</span>
+                  </div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <div class="sidebar-user-avatar" style="width:24px;height:24px;font-size:10px;background:var(--sa-grad);">M</div>
+                    <span>Super Admin 3</span>
+                  </div>
+                </td>
+                <td><strong>All Companies</strong> (Full tenant export)</td>
+                <td><span class="approval-reason">Annual compliance audit</span></td>
+                <td>
+                  <span class="time-normal">23h left</span>
+                </td>
+                <td>
+                  <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="viewApprovalDetails('exp_001')" style="color:var(--sa-accent);">Review</button>
+                    <button class="quick-action-btn" onclick="approveQuick('exp_001')" style="background:#dcfce7;color:#166534;">✓</button>
+                    <button class="quick-action-btn" onclick="rejectQuick('exp_001')" style="background:#fee2e2;color:#b91c1c;">✗</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty State (hidden by default) -->
+        <div id="approvals-empty" style="display:none; padding:48px; text-align:center;">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <h4 style="margin-top:16px; font-weight:600;">No Pending Approvals</h4>
+          <p style="color:var(--muted); max-width:300px; margin:8px auto 0;">All caught up! Check back later for new requests.</p>
+        </div>
+      </div>
+
+      <!-- Recent Approval History -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Recent Activity</h3>
+          <button class="btn btn-ghost btn-sm" onclick="loadApprovalHistory()">Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Request</th>
+                <th>Requested By</th>
+                <th>Approved/Rejected By</th>
+                <th>Status</th>
+                <th>When</th>
+              </tr>
+            </thead>
+            <tbody id="approval-history-body">
+              <tr>
+                <td>Delete Company (Apex Properties)</td>
+                <td>Super Admin 1</td>
+                <td>Super Admin 2</td>
+                <td><span class="badge" style="background:#dcfce7;color:#166534;">Approved</span></td>
+                <td>2 hours ago</td>
+              </tr>
+              <tr>
+                <td>Suspend Manager (alice@apex.co.za)</td>
+                <td>Super Admin 3</td>
+                <td>Super Admin 1</td>
+                <td><span class="badge" style="background:#fee2e2;color:#b91c1c;">Rejected</span></td>
+                <td>5 hours ago</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>

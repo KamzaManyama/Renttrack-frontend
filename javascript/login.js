@@ -127,14 +127,17 @@
   function roleToPage(role) {
     switch (role) {
       case 'super_admin':                          return 'superadmin.html';
-      case 'manager':
-      case 'maintenance_admin':                    return 'manager.html';
-      case 'technician':                           return 'caretaker.html';
-      case 'tenant':
+      case 'manager':                              return 'manager.html';
+      case 'maintenance_admin':                    return 'caretaker.html';
+      case 'technician':                           return 'technician.html';
       case 'staff':
       default:                                     return 'tenant.html';
     }
   }
+
+//   case 'manager':             return 'manager.html';
+// case 'maintenance_admin':   return 'caretaker.html';
+// case 'caretaker':           return 'caretaker.html';
 
   /* ── Password toggle ─────────────────────────────────────── */
   document.getElementById('pw-toggle').addEventListener('click', function () {
@@ -226,3 +229,36 @@
   });
 
 })();
+
+  // Simple password visibility toggle (preserves existing login.js functionality)
+  (function() {
+    const toggleBtn = document.getElementById('pw-toggle');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eye-icon');
+    
+    if (toggleBtn && passwordInput) {
+      toggleBtn.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        // Update icon
+        if (type === 'text') {
+          eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+        } else {
+          eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+        }
+      });
+    }
+    
+    // Load slug from env.js
+    const slugSpan = document.getElementById('slug-text');
+    if (slugSpan) {
+      if (typeof window.ENV !== 'undefined' && window.ENV.SLUG) {
+        slugSpan.innerText = window.ENV.SLUG;
+      } else if (typeof window.__ENV !== 'undefined' && window.__ENV.SLUG) {
+        slugSpan.innerText = window.__ENV.SLUG;
+      } else {
+        slugSpan.innerText = 'RentTrack';
+      }
+    }
+  })();

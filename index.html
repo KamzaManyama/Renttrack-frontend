@@ -3,96 +3,169 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In | RentTrack</title>
+  <title>Register | RentTrack</title>
   <script src="env.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style/login.css">
+  <link rel="stylesheet" href="style/register.css">
 </head>
 <body>
-
-<div class="login-wrap">
-
-  <!-- ── Hero: full bleed image, no text ── -->
-  <div class="login-hero">
-    <img
-      src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80"
-      alt=""
-      loading="eager"
-    >
+<div class="register-wrap">
+  <div class="register-hero">
+    <img src="https://i.pinimg.com/736x/d9/e6/cc/d9e6cce263b4642555e47cd3616535b7.jpg" alt="" loading="eager">
   </div>
+  <div class="register-panel">
+    <div class="register-panel-inner">
 
-  <!-- ── Form panel ── -->
-  <div class="login-panel">
-
-    <!-- Brand -->
-    <div class="login-brand">
-      <svg width="30" height="24" viewBox="0 0 50 39" fill="none">
-        <path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" fill="#007AFF"/>
-        <path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" fill="#312ECB"/>
-      </svg>
-      <span class="login-brand-name" id="app-name">RentTrack</span>
-    </div>
-
-    <!-- Heading -->
-    <div class="login-heading">
-      <h1>Welcome back</h1>
-      <p>Sign in to access your dashboard</p>
-    </div>
-
-    <!-- API error -->
-    <div class="api-error" id="api-error">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span id="api-error-text"></span>
-    </div>
-
-    <!-- Form -->
-    <form id="login-form" novalidate autocomplete="on">
-
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input type="email" id="email" class="form-input"
-          placeholder="you@example.com"
-          autocomplete="email" spellcheck="false">
-        <span class="field-error" id="email-error">Please enter a valid email address.</span>
+      <div class="register-brand">
+        <svg width="45" height="36" viewBox="0 0 50 39" fill="none"><path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" fill="#007AFF"/><path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" fill="#312ECB"/></svg>
+        <span class="register-brand-name" id="company-name">RentTrack</span>
       </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <div class="pw-wrap">
-          <input type="password" id="password" class="form-input"
-            placeholder="Enter your password"
-            autocomplete="current-password">
-          <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Show password">
-            <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
+      <div class="register-heading">
+        <h1>Create account</h1>
+        <p>Register to access your property portal</p>
+      </div>
+
+      <!-- Company not found error -->
+      <div id="company-error">
+        <div style="font-size:40px;opacity:.2;margin-bottom:12px">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div style="font-weight:600;margin-bottom:6px">Company not found</div>
+        <div style="font-size:13px;color:var(--muted)">This registration link may be invalid. Contact your property manager.</div>
+      </div>
+
+      <!-- Form — shown after company loads -->
+      <div id="reg-form-wrap" style="display:none">
+
+        <div class="step-indicator">
+          <div class="step-dot active" id="dot-1"></div>
+          <div class="step-dot" id="dot-2"></div>
+          <div class="step-dot" id="dot-3"></div>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="step active" id="step-1">
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name *</label>
+              <input type="text" id="firstname" class="form-input" placeholder="John">
+              <span class="field-error" id="firstname-err"></span>
+            </div>
+            <div class="form-group">
+              <label>Last Name *</label>
+              <input type="text" id="lastname" class="form-input" placeholder="Smith">
+              <span class="field-error" id="lastname-err"></span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email Address *</label>
+            <input type="email" id="email" class="form-input" placeholder="you@example.com">
+            <span class="field-error" id="email-err"></span>
+          </div>
+          <div class="form-group">
+            <label>Phone Number *</label>
+            <input type="tel" id="phone" class="form-input" placeholder="082 123 4567">
+            <span class="field-error" id="phone-err"></span>
+          </div>
+          <div class="form-group">
+            <label>ID / Passport Number</label>
+            <input type="text" id="id-number" class="form-input" placeholder="SA ID or passport">
+          </div>
+          <div class="form-group">
+            <label>Password *</label>
+            <div class="pw-wrap">
+              <input type="password" id="password" class="form-input" placeholder="Minimum 8 characters">
+              <button type="button" class="pw-toggle" onclick="togglePw('password')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
+            <span class="field-error" id="password-err"></span>
+          </div>
+          <div class="form-group">
+            <label>Confirm Password *</label>
+            <div class="pw-wrap">
+              <input type="password" id="password2" class="form-input" placeholder="Confirm your password">
+              <button type="button" class="pw-toggle" onclick="togglePw('password2')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
+            <span class="field-error" id="password2-err"></span>
+          </div>
+          <button class="btn-primary" onclick="nextToStep2()">
+            Continue
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
-        <span class="field-error" id="password-error">Password is required.</span>
+
+        <!-- Step 2 -->
+        <div class="step" id="step-2">
+          <div class="form-group">
+            <label>Select Property *</label>
+            <select id="property-select" class="form-input" onchange="loadUnits()">
+              <option value="">— Select a property —</option>
+            </select>
+            <span class="field-error" id="property-err"></span>
+          </div>
+          <div class="form-group" id="unit-group" style="display:none">
+            <label>Select Unit *</label>
+            <select id="unit-select" class="form-input">
+              <option value="">— Select a unit —</option>
+            </select>
+            <span class="field-error" id="unit-err"></span>
+          </div>
+          <div class="info-box">Only vacant units available for registration are shown. If your unit is not listed, contact your property manager.</div>
+          <div class="button-group">
+            <button class="btn-outline" onclick="goToStep(1)">Back</button>
+            <button class="btn-primary" onclick="nextToStep3()">Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step" id="step-3">
+          <div class="form-group">
+            <label>Upload Document <span style="font-weight:400;text-transform:none;letter-spacing:0">(lease, ID copy — optional)</span></label>
+            <div class="doc-upload-area" id="dropzone" onclick="document.getElementById('doc-input').click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px;display:block"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div id="doc-label" style="font-size:12px;color:var(--muted)">Click to upload or drag and drop<br><span style="font-size:10px">PDF, JPG, PNG up to 5MB</span></div>
+            </div>
+            <input type="file" id="doc-input" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleFileSelect(event)">
+          </div>
+          <div class="info-box-blue">By submitting you confirm the information provided is accurate. Your registration will be reviewed and you will be notified by email once approved.</div>
+          <div class="button-group">
+            <button class="btn-outline" onclick="goToStep(2)">Back</button>
+            <button class="btn-primary" id="submit-btn" onclick="submitRegistration()">Submit Registration</button>
+          </div>
+        </div>
+
+        <!-- Success -->
+        <div class="step" id="step-success">
+          <div class="success-state">
+            <div class="success-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h2>Registration submitted!</h2>
+            <p style="color:var(--muted);font-size:13px;line-height:1.6;margin:10px 0 20px">Your request has been sent. You will receive an email once your account is approved — usually within 1 business day.</p>
+            <a href="login.html" class="btn-primary">Go to sign in</a>
+          </div>
+        </div>
+
       </div>
 
-      <button type="submit" class="btn-login" id="login-btn">
-        Sign In
-      </button>
+      <div class="login-link" id="login-link-bar">Already have an account?<a href="login.html">Sign in</a></div>
 
-    </form>
-
-    <!-- Footer -->
-    <div class="login-footer">
-      <div>Property Management System</div>
-      <div class="slug-pill">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span id="slug-text">Loading…</span>
+      <div class="register-footer">
+        <div>Property Management System</div>
+        <div class="slug-pill">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span id="slug-text">Loading...</span>
+        </div>
       </div>
+
     </div>
-
   </div>
 </div>
 
-<script src="app.js"></script>
-<script src="javascript/login.js"></script>
+<div id="toast" class="toast"></div>
+
+<script src="javascript/authentication/register.js"></script>
 
 </body>
 </html>

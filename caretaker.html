@@ -1,12 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RentTrack — Technician</title>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="style/caretaker.css">
+<title>RentTrack — Caretaker</title>
 <script src="env.js"></script>
+<link rel="stylesheet" href="style/caretaker.css">
+<link rel="stylesheet" href="style.css">
 
 </head>
 <body>
@@ -17,9 +15,9 @@
   <div class="modal-custom">
     <div class="modal-header"><h3>Notification</h3><button class="modal-close" onclick="closeNotificationModal()">✕</button></div>
     <div class="modal-body">
-      <div class="modal-icon" id="notification-icon"></div>
-      <div class="modal-title" id="notification-title"></div>
-      <div class="modal-message" id="notification-message"></div>
+      <div class="modal-icon" id="notification-icon">⚠</div>
+      <div class="modal-title" id="notification-title">Error</div>
+      <div class="modal-message" id="notification-message">Invalid server response</div>
       <div class="modal-actions"><button class="btn btn-primary" onclick="closeNotificationModal()">Got it</button></div>
     </div>
   </div>
@@ -28,34 +26,53 @@
 <div class="app">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <svg width="28" height="22" viewBox="0 0 50 39" fill="none"><path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" fill="#0369a1"/><path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" fill="#0284c7"/></svg>
+      <svg width="28" height="22" viewBox="0 0 50 39" fill="none"><path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" fill="#0369a1"></path><path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" fill="#0284c7"></path></svg>
       <span class="sidebar-logo-name" id="sb-app-name">RentTrack</span>
     </div>
-    <div class="sidebar-role">Technician Portal</div>
+    <div class="sidebar-role">Caretaker Portal</div>
     <nav class="nav-section">
-      <div class="nav-section-label">My Work</div>
-      <div class="nav-item active" onclick="showPage('jobs',this);closeSidebarMobile();">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        My Jobs<span class="notif-dot" id="jobs-dot" style="display:none"></span>
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item" onclick="showPage('dashboard',this);closeSidebarMobile();">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+        Dashboard
       </div>
-      <div class="nav-item" onclick="showPage('completed',this);closeSidebarMobile();">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        Completed
+    </nav>
+    <nav class="nav-section">
+      <div class="nav-section-label">Tickets</div>
+      <div class="nav-item" onclick="showPage('tickets',this);closeSidebarMobile();">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        All Tickets<span class="notif-dot" id="tickets-dot" style="display:none"></span>
+      </div>
+      
+    </nav>
+    <nav class="nav-section">
+      <div class="nav-section-label">Management</div>
+      <div class="nav-item active" onclick="showPage('technicians',this);closeSidebarMobile();">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        Technicians
+      </div>
+      <div class="nav-item" onclick="showPage('schedules',this);closeSidebarMobile();">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        Schedules
+      </div>
+      <div class="nav-item" onclick="showPage('history',this);closeSidebarMobile();">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        Ticket History
       </div>
     </nav>
     <nav class="nav-section">
       <div class="nav-section-label">Account</div>
       <div class="nav-item" onclick="showPage('notifications',this);closeSidebarMobile();">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"></path></svg>
         Notifications<span class="notif-dot" id="notif-dot" style="display:none"></span>
       </div>
     </nav>
     <div class="sidebar-footer">
       <div class="sidebar-user">
         <div class="sidebar-user-avatar" id="sb-avatar">T</div>
-        <div><div class="sidebar-user-name" id="sb-name">Loading…</div><div class="sidebar-user-role">Technician</div></div>
+        <div><div class="sidebar-user-name" id="sb-name">Thabo Mokoena</div><div class="sidebar-user-role">Caretaker</div></div>
         <button class="btn-logout" onclick="logout()" title="Sign out">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
         </button>
       </div>
     </div>
@@ -66,92 +83,719 @@
       <div class="topbar-left">
         <button class="burger-menu" id="burgerMenu" onclick="toggleSidebar()" aria-label="Toggle menu"><span></span><span></span><span></span></button>
         <div class="mobile-brand">
-          <svg width="22" height="18" viewBox="0 0 50 39" fill="none"><path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" fill="#0369a1"/><path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" fill="#0284c7"/></svg>
+          <svg width="22" height="18" viewBox="0 0 50 39" fill="none"><path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" fill="#0369a1"></path><path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" fill="#0284c7"></path></svg>
           <span id="mobileAppName">RentTrack</span>
         </div>
-        <span class="topbar-title" id="page-title">My Jobs</span>
+        <span class="topbar-title" id="page-title">Technicians</span>
       </div>
       <button class="btn btn-outline btn-sm" onclick="refreshCurrent()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path></svg>
         <span class="btn-text">Refresh</span>
       </button>
     </div>
     <div class="swipe-hint" id="swipeHint">← Swipe to open menu</div>
 
-    <!-- MY JOBS -->
-    <section class="page active" id="page-jobs">
+    <!-- DASHBOARD -->
+    <section class="page" id="page-dashboard">
       <div class="stats-grid">
         <div class="stat-card accent-blue">
-          <div class="stat-card-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Assigned</div>
-          <div class="stat-card-value" id="st-assigned" style="color:var(--tech)">—</div>
-          <div class="stat-card-sub">New jobs waiting</div>
-        </div>
-        <div class="stat-card accent-amber">
-          <div class="stat-card-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> In Progress</div>
-          <div class="stat-card-value" id="st-inprogress" style="color:#b45309">—</div>
-          <div class="stat-card-sub">Currently working</div>
+          <div class="stat-card-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Open Tickets</div>
+          <div class="stat-card-value" id="stats-open">—</div>
+          <div class="stat-card-sub">Active maintenance requests</div>
         </div>
         <div class="stat-card accent-red">
-          <div class="stat-card-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Urgent</div>
-          <div class="stat-card-value" id="st-urgent" style="color:#b91c1c">—</div>
-          <div class="stat-card-sub">Priority attention</div>
+          <div class="stat-card-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Urgent</div>
+          <div class="stat-card-value" id="stats-urgent">—</div>
+          <div class="stat-card-sub">Priority attention needed</div>
+        </div>
+        <div class="stat-card accent-amber">
+          <div class="stat-card-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> Overdue</div>
+          <div class="stat-card-value" id="stats-overdue">—</div>
+          <div class="stat-card-sub">Past due date</div>
         </div>
         <div class="stat-card accent-slate">
-          <div class="stat-card-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/></svg> On Hold</div>
-          <div class="stat-card-value" id="st-hold" style="color:#94a3b8">—</div>
-          <div class="stat-card-sub">Blocked / waiting</div>
+          <div class="stat-card-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Scheduled</div>
+          <div class="stat-card-value" id="stats-scheduled">—</div>
+          <div class="stat-card-sub">Maintenance today</div>
         </div>
       </div>
 
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <div class="filter-pills">
-          <span class="filter-pill active" data-status="" onclick="filterJobs(this)">All Active</span>
-          <span class="filter-pill" data-status="assigned" onclick="filterJobs(this)">Assigned</span>
-          <span class="filter-pill" data-status="in_progress" onclick="filterJobs(this)">In Progress</span>
-          <span class="filter-pill" data-status="on_hold" onclick="filterJobs(this)">On Hold</span>
+      <div style="display:grid;grid-template-columns:2fr 2fr;gap:20px;">
+        <div class="card">
+          <div class="card-header">
+            <h3>Recent Active Tickets</h3>
+            <button class="btn btn-ghost btn-sm" onclick="showPage('tickets',document.querySelectorAll('.nav-item')[2])">View All</button>
+          </div>
+          <div id="recent-tickets" class="recent-tickets">
+            <div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>
+          </div>
         </div>
-        <div class="search-input" style="margin-left:auto;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" placeholder="Search jobs…" id="job-search" oninput="applyJobFilters()">
+        <div class="card">
+          <div class="card-header">
+            <h3>Technician Workload</h3>
+            <button class="btn btn-ghost btn-sm" onclick="showPage('technicians',document.querySelectorAll('.nav-item')[5])">View All</button>
+          </div>
+          <div id="tech-workload" style="padding:8px 10px;">
+            <div style="text-align:center;padding:32px;color:var(--muted);">Loading…</div>
+          </div>
         </div>
       </div>
-
-      <div id="jobs-grid" class="jobs-grid">
-        <div style="text-align:center;padding:48px;color:var(--muted);grid-column:1/-1;font-size:13px;">
-          <div class="spinner" style="border-color:rgba(0,0,0,.1);border-top-color:var(--tech);margin:0 auto 14px;width:24px;height:24px;"></div>Loading jobs…
-        </div>
-      </div>
-      <div id="jobs-pagination" class="pagination"></div>
     </section>
 
-    <!-- COMPLETED -->
-    <section class="page" id="page-completed">
+    <!-- ALL TICKETS -->
+    <section class="page" id="page-tickets">
       <div class="page-header">
-        <h2>Completed Jobs</h2>
+        <h2>All Tickets</h2>
+        <div style="display:flex;gap:10px;">
+          <div class="search-input">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" placeholder="Search tickets…" id="ticket-search">
+          </div>
+          
+        </div>
+      </div>
+
+      <div class="filter-pills">
+        <span class="filter-pill active" data-status="all" onclick="filterTickets(this)">All</span>
+        <span class="filter-pill" data-status="open" onclick="filterTickets(this)">Open</span>
+        <span class="filter-pill" data-status="completed" onclick="filterTickets(this)">Completed</span>
+        <span class="filter-pill" data-status="urgent" onclick="filterTickets(this)">Urgent</span>
+        <span class="filter-pill" data-status="unassigned" onclick="filterTickets(this)">Unassigned</span>
+      </div>
+
+      <div id="tickets-grid" class="tickets-grid">
+    <div class="table-responsive">
+      <table class="tickets-table">
+        <thead>
+          <tr>
+            <th>Ticket #</th>
+            <th>Title</th>
+            <th>Property/Unit</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Assigned To</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+              <tr onclick="openTicketModal('0d0b63da-cc7b-4bfd-9d9b-2a60ba885e60')" style="cursor:pointer;">
+                <td><span class="ticket-number">TKT-001045</span></td>
+                <td>
+                  <div class="ticket-title-cell">Cockroach infestation in unit</div>
+                  <div class="ticket-description-preview">Cockroaches found in kitchen cupboards and under the sink.</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence • Unit Block L 104</td>
+                <td><span class="badge badge-completed"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>completed</span></td>
+                <td><span class="badge badge-high"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>high</span></td>
+                <td>Caretaker Block L</td>
+                <td><span class="date-cell">18h ago</span></td>
+                <td onclick="event.stopPropagation();">
+                  <div class="table-actions">
+                    <button class="btn-icon" onclick="openAssignModal('0d0b63da-cc7b-4bfd-9d9b-2a60ba885e60')" title="Assign">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    </button>
+                    
+                  </div>
+                </td>
+              </tr>
+            
+              <tr onclick="openTicketModal('18e9ce23-47e4-43ed-90f1-72837fa7ee47')" style="cursor:pointer;">
+                <td><span class="ticket-number">TKT-001038</span></td>
+                <td>
+                  <div class="ticket-title-cell">Crack in bedroom wall</div>
+                  <div class="ticket-description-preview">Visible crack running along the wall near the window.</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence • Unit Block J 204</td>
+                <td><span class="badge badge-open"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>open</span></td>
+                <td><span class="badge badge-medium"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>medium</span></td>
+                <td>—</td>
+                <td><span class="date-cell">18h ago</span></td>
+                <td onclick="event.stopPropagation();">
+                  <div class="table-actions">
+                    <button class="btn-icon" onclick="openAssignModal('18e9ce23-47e4-43ed-90f1-72837fa7ee47')" title="Assign">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    </button>
+                    
+                      <button class="btn-icon" onclick="quickCloseTicket('18e9ce23-47e4-43ed-90f1-72837fa7ee47')" title="Close">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
+                      </button>
+                    
+                  </div>
+                </td>
+              </tr>
+            
+              <tr onclick="openTicketModal('1e549ae1-bfdf-4960-94c2-4008ee544a25')" style="cursor:pointer;">
+                <td><span class="ticket-number">TKT-001030</span></td>
+                <td>
+                  <div class="ticket-title-cell">Cockroach infestation in unit</div>
+                  <div class="ticket-description-preview">Cockroaches found in kitchen cupboards and under the sink.</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence • Unit Block H 109</td>
+                <td><span class="badge badge-closed"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>closed</span></td>
+                <td><span class="badge badge-high"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>high</span></td>
+                <td>Caretaker Block H</td>
+                <td><span class="date-cell">18h ago</span></td>
+                <td onclick="event.stopPropagation();">
+                  <div class="table-actions">
+                    <button class="btn-icon" onclick="openAssignModal('1e549ae1-bfdf-4960-94c2-4008ee544a25')" title="Assign">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    </button>
+                    
+                  </div>
+                </td>
+              </tr>
+            
+              <tr onclick="openTicketModal('2075176c-7a56-4b14-bf67-0846e24b4505')" style="cursor:pointer;">
+                <td><span class="ticket-number">TKT-001025</span></td>
+                <td>
+                  <div class="ticket-title-cell">Power outlet not working</div>
+                  <div class="ticket-description-preview">The wall outlet near the desk is completely dead.</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence • Unit Block G 110</td>
+                <td><span class="badge badge-assigned"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>assigned</span></td>
+                <td><span class="badge badge-medium"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>medium</span></td>
+                <td>Caretaker Block G</td>
+                <td><span class="date-cell">18h ago</span></td>
+                <td onclick="event.stopPropagation();">
+                  <div class="table-actions">
+                    <button class="btn-icon" onclick="openAssignModal('2075176c-7a56-4b14-bf67-0846e24b4505')" title="Assign">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    </button>
+                    
+                      <button class="btn-icon" onclick="quickCloseTicket('2075176c-7a56-4b14-bf67-0846e24b4505')" title="Close">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
+                      </button>
+                    
+                  </div>
+                </td>
+              </tr>
+            
+              <tr onclick="openTicketModal('2289f64b-99c4-41c0-bd2f-fe5714f166b8')" style="cursor:pointer;">
+                <td><span class="ticket-number">TKT-001056</span></td>
+                <td>
+                  <div class="ticket-title-cell">Ceiling water stain appearing</div>
+                  <div class="ticket-description-preview">Brown water stain on ceiling, possibly leaking from unit abo...</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence • Unit Block N 104</td>
+                <td><span class="badge badge-in-progress"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"></path></svg>in progress</span></td>
+                <td><span class="badge badge-high"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>high</span></td>
+                <td>Caretaker Block N</td>
+                <td><span class="date-cell">18h ago</span></td>
+                <td onclick="event.stopPropagation();">
+                  <div class="table-actions">
+                    <button class="btn-icon" onclick="openAssignModal('2289f64b-99c4-41c0-bd2f-fe5714f166b8')" title="Assign">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    </button>
+                    
+                      <button class="btn-icon" onclick="quickCloseTicket('2289f64b-99c4-41c0-bd2f-fe5714f166b8')" title="Close">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
+                      </button>
+                    
+                  </div>
+                </td>
+              </tr>
+            
+              <tr onclick="openTicketModal('30ce53df-11b8-46ce-83b3-62343e54badf')" style="cursor:pointer;">
+                <td><span class="ticket-number">TKT-001003</span></td>
+                <td>
+                  <div class="ticket-title-cell">Leaking tap in bathroom</div>
+                  <div class="ticket-description-preview">The bathroom tap has been dripping constantly for several da...</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence • Unit Block A 101</td>
+                <td><span class="badge badge-completed"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>completed</span></td>
+                <td><span class="badge badge-medium"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>medium</span></td>
+                <td>Caretaker Block A</td>
+                <td><span class="date-cell">18h ago</span></td>
+                <td onclick="event.stopPropagation();">
+                  <div class="table-actions">
+                    <button class="btn-icon" onclick="openAssignModal('30ce53df-11b8-46ce-83b3-62343e54badf')" title="Assign">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    </button>
+                    
+                  </div>
+                </td>
+              </tr>
+            
+              <tr onclick="openTicketModal('31ff0e6a-3134-4b12-a175-31cce8e0311d')" style="cursor:pointer;">
+                <td><span class="ticket-number">TKT-001026</span></td>
+                <td>
+                  <div class="ticket-title-cell">Crack in bedroom wall</div>
+                  <div class="ticket-description-preview">Visible crack running along the wall near the window.</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence • Unit Block G 103</td>
+                <td><span class="badge badge-in-progress"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"></path></svg>in progress</span></td>
+                <td><span class="badge badge-medium"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>medium</span></td>
+                <td>Caretaker Block G</td>
+                <td><span class="date-cell">18h ago</span></td>
+                <td onclick="event.stopPropagation();">
+                  <div class="table-actions">
+                    <button class="btn-icon" onclick="openAssignModal('31ff0e6a-3134-4b12-a175-31cce8e0311d')" title="Assign">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    </button>
+                    
+                      <button class="btn-icon" onclick="quickCloseTicket('31ff0e6a-3134-4b12-a175-31cce8e0311d')" title="Close">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
+                      </button>
+                    
+                  </div>
+                </td>
+              </tr>
+            
+              <tr onclick="openTicketModal('32a0e358-4cbc-49cd-815b-2695ccfc5051')" style="cursor:pointer;">
+                <td><span class="ticket-number">TKT-001050</span></td>
+                <td>
+                  <div class="ticket-title-cell">Power outlet not working</div>
+                  <div class="ticket-description-preview">The wall outlet near the desk is completely dead.</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence • Unit Block M 109</td>
+                <td><span class="badge badge-assigned"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>assigned</span></td>
+                <td><span class="badge badge-medium"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>medium</span></td>
+                <td>Caretaker Block M</td>
+                <td><span class="date-cell">18h ago</span></td>
+                <td onclick="event.stopPropagation();">
+                  <div class="table-actions">
+                    <button class="btn-icon" onclick="openAssignModal('32a0e358-4cbc-49cd-815b-2695ccfc5051')" title="Assign">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    </button>
+                    
+                      <button class="btn-icon" onclick="quickCloseTicket('32a0e358-4cbc-49cd-815b-2695ccfc5051')" title="Close">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
+                      </button>
+                    
+                  </div>
+                </td>
+              </tr>
+            
+              <tr onclick="openTicketModal('33395b2e-5213-4e85-b574-f5e893c23776')" style="cursor:pointer;">
+                <td><span class="ticket-number">TKT-001018</span></td>
+                <td>
+                  <div class="ticket-title-cell">Cockroach infestation in unit</div>
+                  <div class="ticket-description-preview">Cockroaches found in kitchen cupboards and under the sink.</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence • Unit Block E 107</td>
+                <td><span class="badge badge-assigned"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>assigned</span></td>
+                <td><span class="badge badge-high"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>high</span></td>
+                <td>Caretaker Block E</td>
+                <td><span class="date-cell">18h ago</span></td>
+                <td onclick="event.stopPropagation();">
+                  <div class="table-actions">
+                    <button class="btn-icon" onclick="openAssignModal('33395b2e-5213-4e85-b574-f5e893c23776')" title="Assign">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    </button>
+                    
+                      <button class="btn-icon" onclick="quickCloseTicket('33395b2e-5213-4e85-b574-f5e893c23776')" title="Close">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
+                      </button>
+                    
+                  </div>
+                </td>
+              </tr>
+            
+              <tr onclick="openTicketModal('36be1eba-dc30-4de4-9b92-94aeb58cf02b')" style="cursor:pointer;">
+                <td><span class="ticket-number">TKT-001011</span></td>
+                <td>
+                  <div class="ticket-title-cell">Blocked drain in shower</div>
+                  <div class="ticket-description-preview">Shower drain is completely blocked, water pooling on the flo...</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence • Unit Block C 203</td>
+                <td><span class="badge badge-completed"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>completed</span></td>
+                <td><span class="badge badge-high"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>high</span></td>
+                <td>Caretaker Block C</td>
+                <td><span class="date-cell">18h ago</span></td>
+                <td onclick="event.stopPropagation();">
+                  <div class="table-actions">
+                    <button class="btn-icon" onclick="openAssignModal('36be1eba-dc30-4de4-9b92-94aeb58cf02b')" title="Assign">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    </button>
+                    
+                  </div>
+                </td>
+              </tr>
+            
+              <tr onclick="openTicketModal('3deb9934-1377-426f-9b25-01be118fa4b6')" style="cursor:pointer;">
+                <td><span class="ticket-number">TKT-001008</span></td>
+                <td>
+                  <div class="ticket-title-cell">Power outlet not working</div>
+                  <div class="ticket-description-preview">The wall outlet near the desk is completely dead.</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence • Unit Block B 103</td>
+                <td><span class="badge badge-in-progress"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"></path></svg>in progress</span></td>
+                <td><span class="badge badge-medium"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>medium</span></td>
+                <td>Caretaker Block B</td>
+                <td><span class="date-cell">18h ago</span></td>
+                <td onclick="event.stopPropagation();">
+                  <div class="table-actions">
+                    <button class="btn-icon" onclick="openAssignModal('3deb9934-1377-426f-9b25-01be118fa4b6')" title="Assign">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    </button>
+                    
+                      <button class="btn-icon" onclick="quickCloseTicket('3deb9934-1377-426f-9b25-01be118fa4b6')" title="Close">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
+                      </button>
+                    
+                  </div>
+                </td>
+              </tr>
+            
+              <tr onclick="openTicketModal('3f65cb8b-b05d-44ed-a151-be082ea671c5')" style="cursor:pointer;">
+                <td><span class="ticket-number">TKT-001044</span></td>
+                <td>
+                  <div class="ticket-title-cell">Ceiling water stain appearing</div>
+                  <div class="ticket-description-preview">Brown water stain on ceiling, possibly leaking from unit abo...</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence • Unit Block K 111</td>
+                <td><span class="badge badge-assigned"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>assigned</span></td>
+                <td><span class="badge badge-high"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>high</span></td>
+                <td>Caretaker Block K</td>
+                <td><span class="date-cell">18h ago</span></td>
+                <td onclick="event.stopPropagation();">
+                  <div class="table-actions">
+                    <button class="btn-icon" onclick="openAssignModal('3f65cb8b-b05d-44ed-a151-be082ea671c5')" title="Assign">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    </button>
+                    
+                      <button class="btn-icon" onclick="quickCloseTicket('3f65cb8b-b05d-44ed-a151-be082ea671c5')" title="Close">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
+                      </button>
+                    
+                  </div>
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    </div>
+  </div>
+      <div id="tickets-pagination" class="pagination"><span class="pagination-info">60 records</span>
+    <div class="pagination-pages" style="display:flex;gap:4px;align-items:center;">
+      <button class="pagination-btn" onclick="changeTicketsPage(0)" disabled="">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button><button class="pagination-page active" onclick="changeTicketsPage(1)">1</button><button class="pagination-page " onclick="changeTicketsPage(2)">2</button><button class="pagination-page " onclick="changeTicketsPage(3)">3</button><button class="pagination-page " onclick="changeTicketsPage(4)">4</button><button class="pagination-page " onclick="changeTicketsPage(5)">5</button>
+      <button class="pagination-btn" onclick="changeTicketsPage(2)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    </div></div>
+    </section>
+
+    <!-- TECHNICIANS -->
+    <section class="page active" id="page-technicians">
+      <div class="page-header">
+        <h2>Technicians</h2>
         <div class="search-input">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" placeholder="Search completed…" id="completed-search" oninput="applyCompletedSearch()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" placeholder="Search technicians…" id="tech-search" oninput="filterTechnicians()">
+        </div>
+      </div>
+      <div id="technicians-grid" class="technicians-grid">
+        <div style="text-align:center;padding:48px;color:var(--muted);grid-column:1/-1;">Loading…</div>
+      </div>
+      <div id="technicians-pagination" class="pagination"></div>
+    </section>
+
+    <!-- MAINTENANCE SCHEDULES -->
+    <section class="page" id="page-schedules">
+      <div class="page-header">
+        <h2>Maintenance Schedules</h2>
+      </div>
+      <div id="schedules-grid" class="schedules-grid">
+    <div class="table-responsive">
+      <table class="schedules-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Property/Area</th>
+            <th>Description</th>
+            <th>Due Date</th>
+            <th>Assigned To</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+              <tr class="">
+                <td>
+                  <div class="schedule-title-cell">Internet / Router Check — Monthly</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence</td>
+                <td>
+                  <div class="schedule-description-preview">Check all shared routers and network access points...</div>
+                </td>
+                <td><span class="date-cell ">—</span></td>
+                <td>—</td>
+                <td>
+                  <span class="badge badge-in-progress">Scheduled</span>
+                </td>
+                <td>
+                  
+                    <button class="btn btn-primary btn-sm" onclick="markScheduleDone('351b5ac0-1055-40cd-989f-f1c46bfba358')">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      Complete
+                    </button>
+                  
+                </td>
+              </tr>
+            
+              <tr class="">
+                <td>
+                  <div class="schedule-title-cell">Pest Control Spray — Monthly</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence</td>
+                <td>
+                  <div class="schedule-description-preview">Carry out pest control treatment across all blocks...</div>
+                </td>
+                <td><span class="date-cell ">—</span></td>
+                <td>—</td>
+                <td>
+                  <span class="badge badge-in-progress">Scheduled</span>
+                </td>
+                <td>
+                  
+                    <button class="btn btn-primary btn-sm" onclick="markScheduleDone('398399ef-23f9-414a-a46a-3d58a73c8700')">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      Complete
+                    </button>
+                  
+                </td>
+              </tr>
+            
+              <tr class="">
+                <td>
+                  <div class="schedule-title-cell">Fire Extinguisher Check — Monthly</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence</td>
+                <td>
+                  <div class="schedule-description-preview">Inspect all fire extinguishers for pressure, expir...</div>
+                </td>
+                <td><span class="date-cell ">—</span></td>
+                <td>—</td>
+                <td>
+                  <span class="badge badge-in-progress">Scheduled</span>
+                </td>
+                <td>
+                  
+                    <button class="btn btn-primary btn-sm" onclick="markScheduleDone('3ae75743-d8a8-4197-8bdd-a925d5a8bc65')">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      Complete
+                    </button>
+                  
+                </td>
+              </tr>
+            
+              <tr class="">
+                <td>
+                  <div class="schedule-title-cell">Plumbing Inspection — Monthly</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence</td>
+                <td>
+                  <div class="schedule-description-preview">Inspect all plumbing in common areas, check for le...</div>
+                </td>
+                <td><span class="date-cell ">—</span></td>
+                <td>—</td>
+                <td>
+                  <span class="badge badge-in-progress">Scheduled</span>
+                </td>
+                <td>
+                  
+                    <button class="btn btn-primary btn-sm" onclick="markScheduleDone('a8aec593-1294-456d-bc05-161a45533677')">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      Complete
+                    </button>
+                  
+                </td>
+              </tr>
+            
+              <tr class="">
+                <td>
+                  <div class="schedule-title-cell">Gutter Cleaning — Monthly</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence</td>
+                <td>
+                  <div class="schedule-description-preview">Clear gutters and downpipes of debris across all b...</div>
+                </td>
+                <td><span class="date-cell ">—</span></td>
+                <td>—</td>
+                <td>
+                  <span class="badge badge-in-progress">Scheduled</span>
+                </td>
+                <td>
+                  
+                    <button class="btn btn-primary btn-sm" onclick="markScheduleDone('e3718416-935c-4ac5-9102-2904c9954afe')">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      Complete
+                    </button>
+                  
+                </td>
+              </tr>
+            
+              <tr class="">
+                <td>
+                  <div class="schedule-title-cell">Garden &amp; Landscaping — Monthly</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence</td>
+                <td>
+                  <div class="schedule-description-preview">Mow lawns, trim hedges, clear pathways and maintai...</div>
+                </td>
+                <td><span class="date-cell ">—</span></td>
+                <td>—</td>
+                <td>
+                  <span class="badge badge-in-progress">Scheduled</span>
+                </td>
+                <td>
+                  
+                    <button class="btn btn-primary btn-sm" onclick="markScheduleDone('ecee0604-8aa5-41eb-8087-4836cf020e98')">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      Complete
+                    </button>
+                  
+                </td>
+              </tr>
+            
+              <tr class="">
+                <td>
+                  <div class="schedule-title-cell">Common Area Cleaning — Weekly</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence</td>
+                <td>
+                  <div class="schedule-description-preview">Clean all common areas including lobbies, staircas...</div>
+                </td>
+                <td><span class="date-cell ">—</span></td>
+                <td>—</td>
+                <td>
+                  <span class="badge badge-in-progress">Scheduled</span>
+                </td>
+                <td>
+                  
+                    <button class="btn btn-primary btn-sm" onclick="markScheduleDone('249ed9ec-bcb9-45a5-9355-eef594de1f4f')">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      Complete
+                    </button>
+                  
+                </td>
+              </tr>
+            
+              <tr class="">
+                <td>
+                  <div class="schedule-title-cell">Security System Check — Weekly</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence</td>
+                <td>
+                  <div class="schedule-description-preview">Inspect all access control points, intercoms, CCTV...</div>
+                </td>
+                <td><span class="date-cell ">—</span></td>
+                <td>—</td>
+                <td>
+                  <span class="badge badge-in-progress">Scheduled</span>
+                </td>
+                <td>
+                  
+                    <button class="btn btn-primary btn-sm" onclick="markScheduleDone('59438f6b-5397-4a5f-a5f1-2dc5b04bd520')">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      Complete
+                    </button>
+                  
+                </td>
+              </tr>
+            
+              <tr class="">
+                <td>
+                  <div class="schedule-title-cell">Structural Inspection — Quarterly</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence</td>
+                <td>
+                  <div class="schedule-description-preview">Full structural inspection of all blocks: walls, c...</div>
+                </td>
+                <td><span class="date-cell ">—</span></td>
+                <td>—</td>
+                <td>
+                  <span class="badge badge-in-progress">Scheduled</span>
+                </td>
+                <td>
+                  
+                    <button class="btn btn-primary btn-sm" onclick="markScheduleDone('45a25521-25ef-4c56-8838-990ff13d36b9')">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      Complete
+                    </button>
+                  
+                </td>
+              </tr>
+            
+              <tr class="">
+                <td>
+                  <div class="schedule-title-cell">Plumbing Deep Inspection — Quarterly</div>
+                </td>
+                <td>Oakridge Student &amp; Professional Residence</td>
+                <td>
+                  <div class="schedule-description-preview">Comprehensive plumbing inspection including geyser...</div>
+                </td>
+                <td><span class="date-cell ">—</span></td>
+                <td>—</td>
+                <td>
+                  <span class="badge badge-in-progress">Scheduled</span>
+                </td>
+                <td>
+                  
+                    <button class="btn btn-primary btn-sm" onclick="markScheduleDone('e3a1b2c7-b13f-4de9-ade4-cf92867d427a')">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      Complete
+                    </button>
+                  
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    </div>
+  </div>
+      <div id="schedules-pagination" class="pagination"><span class="pagination-info">12 records</span>
+    <div class="pagination-pages" style="display:flex;gap:4px;align-items:center;">
+      <button class="pagination-btn" onclick="changeSchedulesPage(0)" disabled="">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button><button class="pagination-page active" onclick="changeSchedulesPage(1)">1</button><button class="pagination-page " onclick="changeSchedulesPage(2)">2</button>
+      <button class="pagination-btn" onclick="changeSchedulesPage(2)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    </div></div>
+    </section>
+
+    <!-- TICKET HISTORY -->
+    <section class="page" id="page-history">
+      <div class="page-header">
+        <h2>Ticket History</h2>
+      </div>
+      <div class="card" style="margin-bottom:20px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px;">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;display:block;">Filter by Property</label>
+            <select id="history-property" class="form-control" onchange="loadHistoryByProperty()"><option value="">Select Block/Property</option><option value="0344411f-2143-11f1-a533-2c7ba0461dd2">Oakridge Student &amp; Professional Residence</option><option value="7cd5fede-f2c4-4dd4-9ed1-177259305d6a">Oakridge Student &amp; Professional Residence</option></select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;display:block;">Filter by Unit</label>
+            <select id="history-unit" class="form-control" onchange="loadHistoryByUnit()">
+              <option value="">Select Unit</option>
+            </select>
+          </div>
         </div>
       </div>
       <div class="card">
         <div class="table-wrap">
-          <table class="completed-table">
+          <table class="history-table">
             <thead>
               <tr>
-                <th style="width:120px;">Ticket #</th>
+                <th>Ticket #</th>
                 <th>Title</th>
-                <th>Property / Unit</th>
-                <th style="width:120px;">Category</th>
-                <th style="width:100px;">Priority</th>
-                <th style="width:120px;">Completed</th>
+                <th>Property</th>
+                <th>Unit</th>
+                <th>Status</th>
+                <th>Technician</th>
+                <th>Completed</th>
               </tr>
             </thead>
-            <tbody id="completed-body">
-              <tr class="loading-row"><td colspan="6" style="text-align:center;padding:32px;">Loading…</td></tr>
-            </tbody>
+            <tbody id="history-table-body"><tr><td colspan="7" style="text-align:center;padding:48px;color:var(--muted)">No ticket history found</td></tr></tbody>
           </table>
         </div>
-        <div id="completed-pagination" class="pagination" style="padding:12px 20px 16px;"></div>
       </div>
     </section>
 
@@ -160,58 +804,39 @@
       <div class="page-header">
         <h2>Notifications</h2>
         <button class="btn btn-outline btn-sm" onclick="markAllRead()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
           Mark all read
         </button>
       </div>
-      <div class="card"><div id="notif-list" style="padding:0;"><div style="text-align:center;padding:48px;color:var(--muted);font-size:13px;">Loading…</div></div></div>
+      <div class="card"><div id="notif-list" style="padding:0;"><div style="text-align:center;padding:48px;color:var(--muted);font-size:13px;">No notifications yet.</div></div></div>
     </section>
   </div>
 </div>
 
-<!-- Job Detail Modal -->
-<div class="modal-backdrop" id="job-modal">
+<!-- Ticket Detail Modal -->
+<div class="modal-backdrop" id="ticket-modal">
   <div class="modal" style="max-width:640px;">
     <div class="modal-header">
       <div>
         <h3 id="modal-tk-num" style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--muted);">TKT-000000</h3>
         <div id="modal-tk-badges" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"></div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="closeJobModal()" style="padding:6px 8px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <button class="btn btn-ghost btn-sm" onclick="closeTicketModal()" style="padding:6px 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
     </div>
     <div class="modal-body">
-      <div class="quick-update-bar">
-        <span class="quick-update-label">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Quick Update
-        </span>
-        <select class="status-select" id="modal-status-sel">
-          <option value="in_progress">Mark In Progress</option>
-          <option value="on_hold">Put On Hold</option>
-          <option value="completed">Mark Completed</option>
-        </select>
-        <button class="btn btn-primary btn-sm" onclick="quickUpdateStatus()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          Apply
-        </button>
-      </div>
-      <div id="modal-tk-body">
-        <div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">
-          <div class="spinner" style="border-color:rgba(0,0,0,.1);border-top-color:var(--tech);margin:0 auto 12px;width:22px;height:22px;"></div>Loading…
-        </div>
-      </div>
+      <div id="modal-tk-body"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;"><div class="spinner" style="border-color:rgba(0,0,0,.1);border-top-color:var(--tech);margin:0 auto 12px;width:22px;height:22px;"></div>Loading…</div></div>
       <div style="margin-top:22px;padding-top:20px;border-top:1px solid var(--border-light);">
         <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text);display:flex;align-items:center;gap:7px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path></svg>
           Updates &amp; Comments
         </div>
         <div id="modal-updates-list"></div>
         <div class="comment-box" style="margin-top:14px;">
           <textarea id="modal-comment" rows="2" placeholder="Add an update or note…"></textarea>
           <button class="btn btn-primary btn-sm" style="align-self:flex-end;" onclick="postComment()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
             Send
           </button>
         </div>
@@ -220,8 +845,143 @@
   </div>
 </div>
 
+<!-- Assign Ticket Modal -->
+<div class="modal-backdrop" id="assign-modal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3>Assign Ticket</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeAssignModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom:16px;font-size:14px;color:var(--text-2);" id="assign-ticket-info"></p>
+      <div class="technicians-list" id="technicians-list"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn btn-outline" onclick="closeAssignModal()">Cancel</button>
+        <button class="btn btn-primary" id="assign-btn" disabled="" onclick="">Assign</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Ticket Modal -->
+<div class="modal-backdrop" id="create-ticket-modal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h3>Create New Ticket</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeCreateTicketModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Title *</label>
+        <input type="text" id="create-title" class="form-control" placeholder="Brief description">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="create-description" class="form-control" placeholder="Detailed information"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Property *</label>
+        <select id="create-property" class="form-control" onchange="loadUnitsForProperty()"><option value="">Select Property</option><option value="0344411f-2143-11f1-a533-2c7ba0461dd2">Oakridge Student &amp; Professional Residence</option><option value="7cd5fede-f2c4-4dd4-9ed1-177259305d6a">Oakridge Student &amp; Professional Residence</option></select>
+      </div>
+      <div class="form-group">
+        <label>Unit</label>
+        <select id="create-unit" class="form-control"><option value="">Select Unit (Optional)</option></select>
+      </div>
+      <div class="form-group">
+        <label>Category *</label>
+        <select id="create-category" class="form-control"><option value="">Select Category</option><option value="ea8362f9-fd89-409d-b8a2-187f5b0415bd">Electrical</option><option value="d4a78a00-7e21-48f3-977f-2555ea5b7c50">Internet / Connectivity</option><option value="0299d50f-b063-4b1b-87de-2b79d41d5233">Pest Control</option><option value="2b7883e1-6e2e-4c3d-8afe-3fa0e0bae62a">Plumbing</option><option value="808f6d15-85ab-4a51-ba39-aac3f03587ed">Structural</option></select>
+      </div>
+      <div class="form-group">
+        <label>Priority</label>
+        <select id="create-priority" class="form-control">
+          <option value="low">Low</option>
+          <option value="medium" selected="">Medium</option>
+          <option value="high">High</option>
+          <option value="urgent">Urgent</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
+        <button class="btn btn-outline" onclick="closeCreateTicketModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitNewTicket()">Create Ticket</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="app.js"></script>
 <script src="javascript/caretaker.js"></script>
+<script>
+// Filter technicians function
+function filterTechnicians() {
+  const search = document.getElementById('tech-search')?.value.toLowerCase() || '';
+  if(!search) {
+    renderTechnicians();
+    return;
+  }
+  const filtered = technicians.filter(t => 
+    t.name.toLowerCase().includes(search) || 
+    (t.email && t.email.toLowerCase().includes(search))
+  );
+  // Temporarily override technicians for display
+  const originalTechs = [...technicians];
+  technicians = filtered;
+  renderTechnicians();
+  technicians = originalTechs;
+}
 
-</body>
-</html>
+// Load units for property in history filter
+document.getElementById('history-property')?.addEventListener('change', async function() {
+  const propertyId = this.value;
+  if(!propertyId) return;
+  
+  try {
+    const resp = await GET(`/api/properties/${propertyId}/units`);
+    const units = resp.data || [];
+    const unitSelect = document.getElementById('history-unit');
+    unitSelect.innerHTML = '<option value="">All Units</option>' + 
+      units.map(u => `<option value="${u.id}">Unit ${u.unit_number}</option>`).join('');
+  } catch(e) {
+    console.error('Error loading units:', e);
+  }
+});
+</script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+
+</body></html>
