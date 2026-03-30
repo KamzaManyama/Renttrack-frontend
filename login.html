@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In | RentTrack</title>
+  <script src="env.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style/login.css">
+  <style>
+    /* Additional styles for action links - can be moved to login.css if preferred */
+    .login-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      margin-bottom: 20px;
+      width: 100%;
+      gap: 16px;
+    }
+    
+    .login-link {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--blue);
+      text-decoration: none;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color 0.2s ease;
+    }
+    
+    .login-link:hover {
+      color: var(--indigo);
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 480px) {
+      .login-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      
+      .login-link {
+        text-align: center;
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-wrap">
+
+  <!-- Hero: full bleed image, no text -->
+  <div class="login-hero">
+    <img
+      src="https://i.pinimg.com/736x/e9/b0/fb/e9b0fb9cef148ed779e3d86467a952ce.jpg"
+      alt=""
+      loading="eager"
+    >
+  </div>
+
+  <!-- Form panel -->
+  <div class="login-panel">
+    <div class="login-panel-inner">
+      
+      <!-- Brand -->
+      <div class="login-brand">
+        <svg width="45" height="36" viewBox="0 0 50 39" fill="none">
+          <path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" fill="#007AFF"/>
+          <path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" fill="#312ECB"/>
+        </svg>
+        <span class="login-brand-name" id="app-name">RentTrack</span>
+      </div>
+
+      <!-- Heading -->
+      <div class="login-heading">
+        <h1>Welcome back</h1>
+        <p>Sign in to access your dashboard</p>
+      </div>
+
+      <!-- API error -->
+      <div class="api-error" id="api-error">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="api-error-text"></span>
+      </div>
+
+      <!-- Form -->
+      <form id="login-form" novalidate autocomplete="on">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" class="form-input"
+            placeholder="you@example.com"
+            autocomplete="email" spellcheck="false">
+          <span class="field-error" id="email-error">Please enter a valid email address.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="password" class="form-input"
+              placeholder="Enter your password"
+              autocomplete="current-password">
+            <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Show password">
+              <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" id="password-error">Password is required.</span>
+        </div>
+
+        <!-- Register & Forgot Password Links -->
+        <div class="login-actions">
+          <a href="index.html" class="login-link" id="register-link">
+            Create account
+          </a>
+          <a href="forgot-password.html" class="login-link" id="forgot-link">
+            Forgot password?
+          </a>
+        </div>
+
+        <button type="submit" class="btn-login" id="login-btn">
+          Sign In
+        </button>
+      </form>
+
+      <!-- Footer -->
+      <div class="login-footer">
+        <div>Property Management System</div>
+        <div class="slug-pill">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span id="slug-text">Loading…</span>
+        </div>
+      </div>
+      
+    </div> 
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script src="javascript/login.js"></script>
+
+</body>
+</html>

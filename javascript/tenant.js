@@ -92,6 +92,11 @@ function closeConfirmModal() {
 let allTickets = [], filteredTickets = [], currentPage = 1, currentStatus = '', openTicketId = null;
 const PER_PAGE = 10;
 
+/* ── Attachment state ─────────────────────────────────────── */
+const NT_MAX_FILES = 5;
+const NT_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+let ntFiles = []; // [{ id, file, dataUrl }]
+
 /* ── Status / Priority config ─────────────────────────────── */
 const STATUS_CLASS = {
   open:        'badge-open',
@@ -298,17 +303,35 @@ async function openTicket(id) {
   document.getElementById('updates-list').innerHTML = '';
 
   try {
-    const [tkResp, updResp] = await Promise.all([
+    const [tkResp, updResp, attResp] = await Promise.all([
       GET(`/api/tickets/${id}`),
       GET(`/api/tickets/${id}/updates`),
+      GET(`/api/tickets/${id}/attachments`).catch(() => ({ data: [] })),
     ]);
-    const t       = tkResp.data;
-    const updates = updResp.data || [];
+    const t           = tkResp.data;
+    const updates     = updResp.data || [];
+    const attachments = attResp.data || [];
 
     document.getElementById('modal-ticket-num').textContent = t.ticket_number || '—';
 
     const statusLabel   = (t.status||'unknown').replace('_',' ');
     const priorityLabel = t.priority || 'unknown';
+
+    // Build attachments gallery if any
+    const attHtml = attachments.length ? `
+      <div style="margin-top:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">
+          Photos (${attachments.length})
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${attachments.map(a => `
+            <a href="${a.file_url}" target="_blank" rel="noopener"
+              style="width:80px;height:80px;border-radius:8px;overflow:hidden;display:block;border:1.5px solid var(--border);flex-shrink:0;">
+              <img src="${a.file_url}" alt="${a.file_name || 'photo'}"
+                style="width:100%;height:100%;object-fit:cover;display:block;">
+            </a>`).join('')}
+        </div>
+      </div>` : '';
 
     document.getElementById('modal-ticket-content').innerHTML = `
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
@@ -339,6 +362,7 @@ async function openTicket(id) {
           ${typeof fmtDate === 'function' ? fmtDate(t.created_at) : t.created_at}
         </span>
       </div>
+      ${attHtml}
     `;
 
     document.getElementById('updates-list').innerHTML = updates.length
@@ -384,19 +408,69 @@ async function postUpdate() {
 }
 
 /* ── New Ticket Form ──────────────────────────────────────── */
+// Store occupancy for submit enforcement
+let _tenantOccupancy = null;
+
 async function loadFormData() {
   try {
-    const [propResp, catResp] = await Promise.all([GET('/api/properties'), GET('/api/categories')]);
-    document.getElementById('nt-property').innerHTML =
-      '<option value="">— Select property —</option>' +
-      (propResp.data||[]).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    const [catResp, myUnitResp] = await Promise.all([
+      GET('/api/categories'),
+      GET('/api/auth/my-unit').catch(() => ({ data: null })),
+    ]);
+
+    _tenantOccupancy = myUnitResp.data; // cache for submitTicket enforcement
+
+    // Categories are fine to load normally
     document.getElementById('nt-category').innerHTML =
       '<option value="">— Select category —</option>' +
       (catResp.data||[]).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+    const propSel = document.getElementById('nt-property');
+    const unitSel = document.getElementById('nt-unit');
+    const hint    = document.getElementById('nt-unit-hint');
+
+    if (_tenantOccupancy) {
+      // Only show the ONE property this tenant belongs to — no other options
+      propSel.innerHTML = `<option value="${_tenantOccupancy.property_id}">${_tenantOccupancy.property_name}</option>`;
+      propSel.value     = _tenantOccupancy.property_id;
+
+      // Only show the ONE unit this tenant lives in — no other options
+      unitSel.innerHTML = `<option value="${_tenantOccupancy.unit_id}">Unit ${_tenantOccupancy.unit_number}</option>`;
+      unitSel.value     = _tenantOccupancy.unit_id;
+
+      // Style as read-only display — pointer-events off so nothing is clickable
+      [propSel, unitSel].forEach(el => {
+        el.style.pointerEvents  = 'none';
+        el.style.background     = 'var(--surface, #f8fafc)';
+        el.style.color          = 'var(--text)';
+        el.style.cursor         = 'default';
+        el.style.border         = '1.5px solid var(--border)';
+        el.setAttribute('aria-readonly', 'true');
+      });
+
+      if (hint) {
+        hint.style.display  = 'flex';
+        const span = document.getElementById('nt-unit-hint-text');
+        if (span) span.textContent =
+          `${_tenantOccupancy.property_name} · Unit ${_tenantOccupancy.unit_number}`;
+      }
+    } else {
+      // No active tenancy — tenant portal shouldn't normally reach here,
+      // but degrade gracefully by loading all properties
+      const propResp = await GET('/api/properties').catch(() => ({ data: [] }));
+      propSel.innerHTML =
+        '<option value="">— Select property —</option>' +
+        (propResp.data||[]).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+      if (hint) hint.style.display = 'none';
+    }
+
   } catch(e) { showNotification('Error', 'Could not load form data: ' + e.message, '⚠'); }
 }
 
 async function loadUnits() {
+  // When a tenant has an active occupancy loadFormData handles everything.
+  // This function only runs for staff/managers without a fixed unit.
+  if (_tenantOccupancy) return;
   const propId = document.getElementById('nt-property').value;
   const sel = document.getElementById('nt-unit');
   sel.innerHTML = '<option value="">Loading…</option>';
@@ -419,8 +493,13 @@ function clearErrors_nt() {
 async function submitTicket() {
   clearErrors_nt();
   const title    = document.getElementById('nt-title').value.trim();
-  const propId   = document.getElementById('nt-property').value;
-  const unitId   = document.getElementById('nt-unit').value;
+  // Always use the server-verified occupancy — never trust the form value directly
+  const propId = _tenantOccupancy
+    ? _tenantOccupancy.property_id
+    : document.getElementById('nt-property').value;
+  const unitId = _tenantOccupancy
+    ? _tenantOccupancy.unit_id
+    : document.getElementById('nt-unit').value;
   const catId    = document.getElementById('nt-category').value;
   const priority = document.getElementById('nt-priority').value;
   const desc     = document.getElementById('nt-desc').value.trim();
@@ -436,13 +515,33 @@ async function submitTicket() {
   btn.innerHTML = `<span class="spinner"></span> Submitting…`;
 
   try {
-    await POST('/api/tickets', {
+    const ticketResp = await POST('/api/tickets', {
       title, property_id: propId,
-      unit_id: unitId || undefined,
-      category_id: catId || undefined,
+      unit_id:     unitId  || undefined,
+      category_id: catId   || undefined,
       priority, description: desc || undefined,
     });
-    showNotification('Ticket submitted', 'Your ticket has been received!', '✓');
+    const ticket = ticketResp.data;
+
+    // Upload any attached photos
+    if (ntFiles.length) {
+      btn.innerHTML = `<span class="spinner"></span> Uploading ${ntFiles.length} photo${ntFiles.length > 1 ? 's' : ''}…`;
+      for (const item of ntFiles) {
+        try {
+          await POST(`/api/tickets/${ticket.id}/attachments`, {
+            file_url:  item.dataUrl,
+            file_name: item.file.name,
+            file_size: item.file.size,
+            mime_type: item.file.type,
+          });
+        } catch (attErr) {
+          // Non-fatal — ticket is already created
+          console.warn('Photo upload failed:', item.file.name, attErr.message);
+        }
+      }
+    }
+
+    showNotification('Ticket submitted', `${ticket.ticket_number} has been received!`, '✓');
     clearNewTicket();
     showPage('tickets', document.querySelectorAll('.nav-item')[1]);
     loadMyTickets();
@@ -461,9 +560,86 @@ function setErr(id, msg) {
 
 function clearNewTicket() {
   ['nt-title','nt-desc'].forEach(id => document.getElementById(id).value = '');
-  ['nt-property','nt-unit','nt-category'].forEach(id => document.getElementById(id).selectedIndex = 0);
+  document.getElementById('nt-category').selectedIndex = 0;
   document.getElementById('nt-priority').value = 'medium';
   clearErrors_nt();
+  ntClearFiles();
+  // Re-run loadFormData so property/unit prefill and locks are restored
+  loadFormData();
+}
+
+/* ── Photo attachment handlers ────────────────────────────── */
+function ntFilesSelected(event) {
+  ntAddFiles(Array.from(event.target.files));
+  event.target.value = '';
+}
+
+function ntDragOver(event) {
+  event.preventDefault();
+  const dz = document.getElementById('nt-dropzone');
+  if (dz) { dz.style.borderColor = 'var(--blue)'; dz.style.background = 'rgba(59,130,246,.04)'; }
+}
+
+function ntDragLeave() {
+  const dz = document.getElementById('nt-dropzone');
+  if (dz) { dz.style.borderColor = ''; dz.style.background = ''; }
+}
+
+function ntDrop(event) {
+  event.preventDefault();
+  ntDragLeave();
+  ntAddFiles(Array.from(event.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+}
+
+function ntAddFiles(files) {
+  for (const file of files) {
+    if (ntFiles.length >= NT_MAX_FILES) {
+      showNotification('Too many photos', `Maximum ${NT_MAX_FILES} photos allowed.`, '⚠'); break;
+    }
+    if (!file.type.startsWith('image/')) {
+      showNotification('Invalid file', `${file.name}: only images are supported.`, '⚠'); continue;
+    }
+    if (file.size > NT_MAX_BYTES) {
+      showNotification('File too large', `${file.name} exceeds the 5 MB limit.`, '⚠'); continue;
+    }
+    const itemId = `ntf-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    const reader = new FileReader();
+    reader.onload = e => {
+      ntFiles.push({ id: itemId, file, dataUrl: e.target.result });
+      ntRenderPreviews();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function ntRemoveFile(itemId) {
+  ntFiles = ntFiles.filter(f => f.id !== itemId);
+  ntRenderPreviews();
+}
+
+function ntClearFiles() {
+  ntFiles = [];
+  ntRenderPreviews();
+}
+
+function ntRenderPreviews() {
+  const grid = document.getElementById('nt-preview-grid');
+  const dz   = document.getElementById('nt-dropzone');
+  if (!grid) return;
+
+  // Hide drop zone once limit is reached
+  if (dz) dz.style.display = ntFiles.length >= NT_MAX_FILES ? 'none' : '';
+
+  grid.innerHTML = ntFiles.map(item => `
+    <div style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1.5px solid var(--border);flex-shrink:0;">
+      <img src="${item.dataUrl}" alt="${item.file.name}"
+        style="width:100%;height:100%;object-fit:cover;display:block;">
+      <button onclick="ntRemoveFile('${item.id}')"
+        style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);border:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
+        ✕
+      </button>
+    </div>`
+  ).join('');
 }
 
 /* ── Notifications ────────────────────────────────────────── */

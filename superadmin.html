@@ -5,9 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>RentTrack — Super Admin</title>
 <link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="style/superadmin.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script src="env.js"></script>
+
 <style>
-  /* Super Admin accent — deep purple/violet to distinguish from other roles */
+
   :root {
     --sa-accent:   #7c3aed;
     --sa-accent2:  #4f46e5;
@@ -29,11 +32,14 @@
   .status-pill-trial    { background:#fef3c7;color:#b45309; }
   .status-pill-suspended{ background:#fee2e2;color:#b91c1c; }
   .status-pill-inactive { background:#f1f5f9;color:#475569; }
+  
 </style>
+
 </head>
 <body>
 
 <div class="app">
+
   <aside class="sidebar">
     <div class="sidebar-logo">
       <svg width="28" height="22" viewBox="0 0 50 39" fill="none">
@@ -65,18 +71,53 @@
       </div>
     </nav>
 
+    <nav class="nav-section">
+      <div class="nav-section-label">Communications</div>
+      <div class="nav-item" onclick="showPage('announcements',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Announcements
+      </div>
+    </nav>
+
+    <!-- <nav class="nav-section">
+      <div class="nav-section-label">Finance</div>
+      <div class="nav-item" onclick="showPage('billing',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Billing
+      </div>
+    </nav> -->
+
+    <!-- <nav class="nav-section">
+      <div class="nav-section-label">Compliance</div>
+      <div class="nav-item" onclick="showPage('approvals',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Pending Approvals
+        <span class="notif-dot" id="approval-badge" style="display:none;"></span>
+      </div>
+    </nav> -->
+
+    <nav class="nav-section">
+      <div class="nav-section-label">Analytics</div>
+      <div class="nav-item" onclick="showPage('metrics',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12v-2a5 5 0 0 0-5-5H8a5 5 0 0 0-5 5v2"/><line x1="3" y1="15" x2="3" y2="21"/><line x1="21" y1="15" x2="21" y2="21"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="7" y1="21" x2="17" y2="21"/></svg>
+        System Metrics
+      </div>
+    </nav>
+
+
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <div class="sidebar-user-avatar" id="sb-avatar" style="background:var(--sa-grad)">S</div>
-        <div>
-          <div class="sidebar-user-name" id="sb-name">Loading…</div>
+        <div class="sidebar-user-avatar" id="sb-avatar" style="background:var(--sa-grad); cursor:pointer;" onclick="showProfile()">S</div>
+        <div style="cursor:pointer;" onclick="showProfile()">
+          <div class="sidebar-user-name" id="sb-name">Super Admin</div>
           <div class="sidebar-user-role">Super Admin</div>
         </div>
         <button class="btn-logout" onclick="logout()" title="Sign out">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
       </div>
     </div>
+
   </aside>
 
   <div class="main">
@@ -117,8 +158,8 @@
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Company</th><th>Slug</th><th>Domain</th><th>Status</th><th>Created</th><th></th></tr></thead>
-            <tbody id="dash-companies-body"><tr class="loading-row"><td colspan="6">Loading…</td></tr></tbody>
+            <thead><tr><th>Company</th><th>Slug</th><th>Domain</th><th>Status</th><th>Created</th><th>Edit</th></tr></thead>
+            <tbody id="dash-companies-body"><tr class="loading-row"><td colspan="7">Loading…</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -151,13 +192,13 @@
           <select id="company-filter" onchange="loadUsers()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:white;outline:none;min-width:200px">
             <option value="">— All Companies —</option>
           </select>
-          <select id="role-filter" onchange="loadUsers()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:white;outline:none">
+          <!-- <select id="role-filter" onchange="loadUsers()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:white;outline:none">
             <option value="">All Roles</option>
             <option value="manager">Manager</option>
             <option value="maintenance_admin">Maintenance Admin</option>
             <option value="technician">Technician</option>
             <option value="tenant">Tenant</option>
-          </select>
+          </select> -->
         </div>
       </div>
       <div class="card">
@@ -170,70 +211,927 @@
         <div id="users-pagination" style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)"></div>
       </div>
     </section>
+
+    <!-- ══ ANNOUNCEMENTS ══ -->
+    <section class="page" id="page-announcements">
+      <div class="page-header">
+        <h2>Platform Announcements</h2>
+        <button class="btn-sa" onclick="openAnnouncementModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Announcement
+        </button>
+      </div>
+
+      <div class="announcements-filters" style="display:flex; gap:10px; margin-bottom:16px;">
+        <select id="announcement-filter" style="padding:8px 12px; border:1.5px solid var(--border); border-radius:var(--radius-sm);">
+          <option value="all">All Announcements</option>
+          <option value="info">Info</option>
+          <option value="warning">Warning</option>
+          <option value="important">Important</option>
+        </select>
+        <select id="announcement-status" style="padding:8px 12px; border:1.5px solid var(--border); border-radius:var(--radius-sm);">
+          <option value="all">All Status</option>
+          <option value="sent">Sent</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="draft">Draft</option>
+        </select>
+      </div>
+
+      <div class="announcements-grid" id="announcements-container">
+        <!-- Announcement cards will be inserted here -->
+        <div class="announcement-card">
+          <div class="announcement-header">
+            <span class="badge badge-important">Important</span>
+            <span class="announcement-date">19 Mar 2026</span>
+          </div>
+          <h4 class="announcement-title">Platform Maintenance Tonight</h4>
+          <p class="announcement-preview">System will be down for upgrades from 2am-4am SAST...</p>
+          <div class="announcement-stats">
+            <span>👁️ 124 reads</span>
+            <span>📨 Sent to 5 companies</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  <!-- ══════════════════════════════════════════════════════════
+     BILLING PAGE SECTION
+     ══════════════════════════════════════════════════════════ -->
+    <section class="page" id="page-billing">
+      <div class="page-header">
+        <h2>Subscriptions &amp; Billing</h2>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="loadInvoices(); openModal('invoices-modal')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Invoices
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="openNewSubscription()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Subscription
+          </button>
+          <button class="btn-sa" onclick="exportBillingReport()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Report
+          </button>
+        </div>
+      </div>
+    
+      <!-- Summary cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-label">Monthly Recurring Revenue</div>
+          <div class="stat-card-value" id="billing-mrr" style="color:#059669">—</div>
+          <div class="stat-card-sub">Active subscriptions only</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Active Subscriptions</div>
+          <div class="stat-card-value" id="billing-active-subs">—</div>
+          <div class="stat-card-sub"><span id="billing-trial-subs">—</span> on trial</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Pending Invoices</div>
+          <div class="stat-card-value" id="billing-pending-inv" style="color:#b45309">—</div>
+          <div class="stat-card-sub"><span id="billing-pending-total">—</span> total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Churn Rate</div>
+          <div class="stat-card-value">0%</div>
+          <div class="stat-card-sub">Last 30 days</div>
+        </div>
+      </div>
+    
+      <!-- Subscriptions table -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Company Subscriptions</h3>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="billing-status-filter" onchange="filterBilling()"
+              style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px">
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="trial">Trial</option>
+              <option value="past_due">Past Due</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="suspended">Suspended</option>
+            </select>
+            <div class="search-input">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Search companies…" id="billing-search">
+            </div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Plan</th>
+                <th>Billing Cycle</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Next Payment</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="subscriptions-body">
+              <tr><td colspan="7" class="empty">Loading subscriptions…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+ 
+ 
+
+
+  
+
+    <!-- ══ PROFILE ══ -->
+    <section class="page" id="page-profile">
+      <div class="page-header">
+        <h2>My Profile</h2>
+        <div>
+          <span class="sa-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Super Admin
+          </span>
+        </div>
+      </div>
+
+      <div class="profile-grid" style="display:grid; grid-template-columns: 280px 1fr; gap: 24px;">
+        
+        <!-- Left Column - Profile Photo & Summary -->
+        <div class="profile-sidebar">
+          <div class="card" style="text-align:center;">
+            <div class="profile-photo-container" style="padding:24px 24px 16px;">
+              <div class="profile-avatar-large" id="profile-avatar" style="width:120px; height:120px; border-radius:50%; margin:0 auto 16px; background:var(--sa-grad); display:flex; align-items:center; justify-content:center; color:white; font-size:48px; font-weight:700; border:4px solid white; box-shadow:var(--shadow);">
+                S
+              </div>
+              <h3 id="profile-name-display" style="font-size:20px; font-weight:700; margin-bottom:4px;">Super Admin</h3>
+              <p id="profile-email-display" style="color:var(--muted); font-size:13px; margin-bottom:16px;">admin@platform.co.za</p>
+              
+              <button class="btn-sa" onclick="document.getElementById('photo-upload').click();" style="width:100%; justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L6 21"/></svg>
+                Change Photo
+              </button>
+              <input type="file" id="photo-upload" accept="image/*" style="display:none;" onchange="handleProfilePhoto(event)">
+            </div>
+
+            <div style="border-top:1px solid var(--border-light); padding:16px 24px; text-align:left;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:var(--muted); font-size:12px;">Member since</span>
+                <span style="font-weight:600; font-size:13px;" id="profile-member-since">19 Mar 2026</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:var(--muted); font-size:12px;">Last login</span>
+                <span style="font-weight:600; font-size:13px;" id="profile-last-login">Today, 09:42</span>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:var(--muted); font-size:12px;">User ID</span>
+                <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted);" id="profile-user-id">00000000-0000-0000-0000-000000000001</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Edit Forms -->
+        <div class="profile-main">
+          <!-- Personal Information -->
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">
+              <h3>Personal Information</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-grid" style="gap:20px;">
+                <div class="form-grid cols-2">
+                  <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="profile-name" value="Super Admin" placeholder="Your full name">
+                  </div>
+                  <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="profile-email" value="admin@platform.co.za" placeholder="email@example.com">
+                    <span class="field-hint" style="font-size:11px; color:var(--muted); margin-top:4px;">Used for login and notifications</span>
+                  </div>
+                </div>
+                <div class="form-grid cols-2">
+                  <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="profile-phone" value="0800000000" placeholder="+27 XX XXX XXXX">
+                  </div>
+                  <div class="form-group">
+                    <label>Language</label>
+                    <select id="profile-language">
+                      <option value="en" selected>English</option>
+                      <option value="af">Afrikaans</option>
+                      <option value="zu">isiZulu</option>
+                      <option value="xh">isiXhosa</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Change Password -->
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">
+              <h3>Change Password</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-grid" style="gap:16px;">
+                <div class="form-group">
+                  <label>Current Password</label>
+                  <div class="pw-wrap">
+                    <input type="password" id="current-password" placeholder="Enter current password">
+                    <span class="pw-toggle" onclick="togglePassword('current-password')">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>New Password</label>
+                  <div class="pw-wrap">
+                    <input type="password" id="new-password" placeholder="Enter new password">
+                    <span class="pw-toggle" onclick="togglePassword('new-password')">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Confirm New Password</label>
+                  <div class="pw-wrap">
+                    <input type="password" id="confirm-password" placeholder="Confirm new password">
+                    <span class="pw-toggle" onclick="togglePassword('confirm-password')">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </span>
+                  </div>
+                </div>
+                
+                <!-- Password strength indicator -->
+                <div class="password-strength" style="margin-top:8px; display:none;" id="password-strength">
+                  <div style="display:flex; gap:4px; margin-bottom:6px;">
+                    <div class="strength-bar" style="height:4px; flex:1; background:#e2e8f0; border-radius:2px;"></div>
+                    <div class="strength-bar" style="height:4px; flex:1; background:#e2e8f0; border-radius:2px;"></div>
+                    <div class="strength-bar" style="height:4px; flex:1; background:#e2e8f0; border-radius:2px;"></div>
+                    <div class="strength-bar" style="height:4px; flex:1; background:#e2e8f0; border-radius:2px;"></div>
+                  </div>
+                  <span style="font-size:11px; color:var(--muted);" id="strength-text">Enter a password</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Two-Factor Authentication -->
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">
+              <h3>Two-Factor Authentication</h3>
+              <span class="badge" style="background:#fee2e2; color:#b91c1c;" id="2fa-status-badge">Disabled</span>
+            </div>
+            <div class="card-body">
+              <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                <div style="flex:1;">
+                  <p style="color:var(--text-2); font-size:13px; margin-bottom:8px;">Add an extra layer of security to your account by enabling two-factor authentication.</p>
+                  <p style="color:var(--muted); font-size:12px;">Once enabled, you'll need to enter a code from your authenticator app when logging in.</p>
+                </div>
+                <button class="btn btn-outline" onclick="setup2FA()" id="2fa-setup-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  Enable 2FA
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Session Management -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Active Sessions</h3>
+              <button class="btn btn-ghost btn-sm" onclick="logoutAllSessions()">Logout All Devices</button>
+            </div>
+            <div class="card-body">
+              <div class="sessions-list" id="sessions-list">
+                <!-- Current session -->
+                <div class="session-item" style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border-light);">
+                  <div style="width:36px; height:36px; background:var(--sa-dim); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--sa-accent);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                  </div>
+                  <div style="flex:1;">
+                    <div style="font-weight:600; font-size:13px;">Chrome on Windows</div>
+                    <div style="font-size:11px; color:var(--muted);">Current session • 192.168.1.100</div>
+                  </div>
+                  <span class="badge" style="background:#dcfce7; color:#166534;">Active Now</span>
+                </div>
+                
+                <!-- Other session -->
+                <div class="session-item" style="display:flex; align-items:center; gap:12px; padding:12px 0;">
+                  <div style="width:36px; height:36px; background:var(--surface); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--muted);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                  </div>
+                  <div style="flex:1;">
+                    <div style="font-weight:600; font-size:13px;">Safari on iPhone</div>
+                    <div style="font-size:11px; color:var(--muted);">Last active 2 hours ago • Cape Town</div>
+                  </div>
+                  <button class="btn btn-ghost btn-sm" onclick="terminateSession('sess_123')">Terminate</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Save Buttons -->
+          <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:24px;">
+            <button class="btn btn-outline" onclick="resetProfileChanges()">Cancel</button>
+            <button class="btn-sa" onclick="saveProfileChanges()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SYSTEM METRICS ══ -->
+    <section class="page" id="page-metrics">
+      <div class="page-header">
+        <h2>System Metrics</h2>
+        <div style="display:flex; gap:8px;">
+          <select id="metrics-timeframe" onchange="loadMetrics()" style="padding:7px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:13px;">
+            <option value="today">Today</option>
+            <option value="week" selected>Last 7 Days</option>
+            <option value="month">Last 30 Days</option>
+            <option value="quarter">Last 90 Days</option>
+            <option value="year">This Year</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="exportMetricsReport()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Report
+          </button>
+        </div>
+      </div>
+
+      <!-- Second Row Metrics -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
+        <div class="stat-card">
+          <div class="stat-card-label">Active Companies</div>
+          <div class="stat-card-value" id="metric-active-companies">5</div>
+          <div class="stat-card-sub">100% of total</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-card-label">Trial Companies</div>
+          <div class="stat-card-value" id="metric-trial-companies">0</div>
+          <div class="stat-card-sub">0% of total</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-card-label">Suspended</div>
+          <div class="stat-card-value" id="metric-suspended-companies">0</div>
+          <div class="stat-card-sub">All healthy</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-card-label">Avg Users/Company</div>
+          <div class="stat-card-value" id="metric-avg-users">49</div>
+          <div class="stat-card-sub">↑ 3 from last month</div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
+        <!-- Growth Chart -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Platform Growth</h3>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-ghost btn-sm active" onclick="changeChartMetric('companies')">Companies</button>
+              <button class="btn btn-ghost btn-sm" onclick="changeChartMetric('users')">Users</button>
+              <button class="btn btn-ghost btn-sm" onclick="changeChartMetric('tickets')">Tickets</button>
+            </div>
+          </div>
+          <div class="card-body" style="height:280px; position:relative;">
+            <!-- Chart placeholder -->
+            <canvas id="growth-chart" style="width:100%; height:100%;"></canvas>
+            <div id="growth-chart-placeholder" style="display:flex; align-items:center; justify-content:center; height:100%; background:var(--surface); border-radius:var(--radius-sm); color:var(--muted);">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12v-2a5 5 0 0 0-5-5H8a5 5 0 0 0-5 5v2"/><line x1="3" y1="15" x2="3" y2="21"/><line x1="21" y1="15" x2="21" y2="21"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="7" y1="21" x2="17" y2="21"/></svg>
+              <span style="margin-left:8px;">Loading chart data...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Distribution Pie -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Company Distribution</h3>
+          </div>
+          <div class="card-body" style="height:280px;">
+            <canvas id="distribution-chart" style="width:100%; height:100%;"></canvas>
+            <div id="distribution-placeholder" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
+              <div style="display:flex; gap:16px; margin-bottom:16px;">
+                <div><span style="display:inline-block; width:12px; height:12px; background:#7c3aed; border-radius:3px;"></span> Active: 5</div>
+                <div><span style="display:inline-block; width:12px; height:12px; background:#f97316; border-radius:3px;"></span> Trial: 0</div>
+              </div>
+              <div style="display:flex; gap:16px;">
+                <div><span style="display:inline-block; width:12px; height:12px; background:#ef4444; border-radius:3px;"></span> Suspended: 0</div>
+                <div><span style="display:inline-block; width:12px; height:12px; background:#64748b; border-radius:3px;"></span> Inactive: 0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Daily Platform Metrics</h3>
+          <button class="btn btn-ghost btn-sm" onclick="refreshMetrics()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Refresh
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Companies</th>
+                <th>Active Co</th>
+                <th>Users</th>
+                <th>Tickets</th>
+                <th>Properties</th>
+                <th>Change</th>
+              </tr>
+            </thead>
+            <tbody id="metrics-table-body">
+              <tr>
+                <td>19 Mar 2026</td>
+                <td><strong>5</strong></td>
+                <td>5</td>
+                <td>245</td>
+                <td>1,847</td>
+                <td>28</td>
+                <td><span class="badge" style="background:#dcfce7;">↑ +2</span></td>
+              </tr>
+              <tr>
+                <td>18 Mar 2026</td>
+                <td><strong>5</strong></td>
+                <td>5</td>
+                <td>243</td>
+                <td>1,832</td>
+                <td>28</td>
+                <td><span class="badge" style="background:#dcfce7;">↑ +5</span></td>
+              </tr>
+              <tr>
+                <td>17 Mar 2026</td>
+                <td><strong>5</strong></td>
+                <td>5</td>
+                <td>238</td>
+                <td>1,821</td>
+                <td>27</td>
+                <td><span class="badge" style="background:#fef3c7;">→ 0</span></td>
+              </tr>
+              <tr>
+                <td>16 Mar 2026</td>
+                <td><strong>5</strong></td>
+                <td>5</td>
+                <td>238</td>
+                <td>1,815</td>
+                <td>27</td>
+                <td><span class="badge" style="background:#dcfce7;">↑ +3</span></td>
+              </tr>
+              <tr>
+                <td>15 Mar 2026</td>
+                <td><strong>4</strong></td>
+                <td>4</td>
+                <td>235</td>
+                <td>1,802</td>
+                <td>26</td>
+                <td><span class="badge" style="background:#dcfce7;">↑ +1</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      </div>
+    </section>
+
   </div>
 </div>
 
-<!-- Company Modal -->
-<div class="modal-backdrop" id="company-modal">
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════════════ -->
+
+<!-- VIEW ANNOUNCEMENT MODAL-->
+<div class="modal-backdrop" id="view-announcement-modal">
   <div class="modal" style="max-width:560px">
     <div class="modal-header">
-      <h3 id="company-modal-title">New Company</h3>
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('company-modal')">✕</button>
+      <h3>Announcement Details</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('view-announcement-modal')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-grid" style="gap:16px">
-        <div class="form-grid cols-2">
-          <div class="form-group"><label>Company Name *</label><input type="text" id="c-name" placeholder="Acme Properties" /><span class="err" id="c-name-err"></span></div>
-          <div class="form-group"><label>Slug * <span style="font-size:10px;font-weight:400;text-transform:none">(URL identifier)</span></label><input type="text" id="c-slug" placeholder="acme-properties" /><span class="err" id="c-slug-err"></span></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <span id="view-ann-badge" class="badge badge-info" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700">Info</span>
+        <span id="view-ann-date" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+      <h3 id="view-ann-title" style="margin:0 0 12px;font-size:18px;font-weight:700;line-height:1.4"></h3>
+      <p id="view-ann-message" style="margin:0 0 20px;font-size:14px;line-height:1.65;color:var(--text)"></p>
+      <div style="display:flex;gap:24px;padding:12px 16px;background:var(--surface);border-radius:var(--radius-sm);font-size:13px">
+        <div>
+          <div style="font-weight:600;margin-bottom:2px">Recipients</div>
+          <div id="view-ann-recipients" style="color:var(--muted)"></div>
         </div>
-        <div class="form-group"><label>Domain</label><input type="text" id="c-domain" placeholder="acme.renttrack.co.za" /></div>
-        <div class="form-grid cols-2">
-          <div class="form-group">
-            <label>Status</label>
-            <select id="c-status">
-              <option value="trial">Trial</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-          <div class="form-group"><label>Primary Color</label><input type="color" id="c-color" value="#007AFF" style="height:41px;padding:4px 8px;cursor:pointer" /></div>
+        <div>
+          <div style="font-weight:600;margin-bottom:2px">Read</div>
+          <div id="view-ann-reads" style="color:var(--muted)"></div>
         </div>
       </div>
     </div>
     <div class="modal-footer">
+      <button id="view-ann-edit-btn" class="btn btn-outline" onclick="editFromView()">Edit</button>
+      <button class="btn btn-outline" onclick="closeModal('view-announcement-modal')">Close</button>
+    </div>
+  </div>
+</div>
+ 
+ 
+<!-- ══════════════════════════════════════════════════════════
+     DELETE ANNOUNCEMENT MODAL
+     ══════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="delete-announcement-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h3>Delete Announcement</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('delete-announcement-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="width:40px;height:40px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </div>
+        <p id="delete-ann-message" style="margin:0;font-size:14px;line-height:1.6;padding-top:6px"></p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('delete-announcement-modal')">Cancel</button>
+      <button class="btn" style="background:#ef4444;color:#fff;border:none" onclick="confirmDeleteAnnouncement()">Delete</button>
+    </div>
+  </div>
+</div>
+ 
+ 
+<!-- New Company Modal -->
+<div class="modal-backdrop" id="company-modal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <h3 id="company-modal-title">Onboard New Company</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('company-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+ 
+      <div class="form-section-title">Company Identity</div>
+      <div class="form-grid cols-2" style="gap:14px;margin-bottom:20px">
+        <div class="form-group"><label>Company Name *</label><input type="text" id="c-name" placeholder="Apex Properties" oninput="autoSlug()"/><span class="err" id="c-name-err"></span></div>
+        <div class="form-group"><label>Slug * <span style="font-size:10px;font-weight:400;text-transform:none">(URL identifier)</span></label><input type="text" id="c-slug" placeholder="apex-properties"/><span class="err" id="c-slug-err"></span></div>
+        <div class="form-group"><label>Domain</label><input type="text" id="c-domain" placeholder="apex.renttrack.co.za"/></div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="c-status">
+            <option value="trial">Trial</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Primary Color</label><input type="color" id="c-color" value="#007AFF" style="height:41px;padding:4px 8px;cursor:pointer"/></div>
+        <div class="form-group"><label>Secondary Color</label><input type="color" id="c-secondary-color" value="#1a1a2e" style="height:41px;padding:4px 8px;cursor:pointer"/></div>
+        <div class="form-group"><label>Logo URL <span style="font-size:10px;font-weight:400;text-transform:none">(optional)</span></label><input type="text" id="c-logo" placeholder="https://cdn.example.com/logo.png"/></div>
+      </div>
+ 
+      <div class="form-section-title">Company Settings</div>
+      <div class="form-grid cols-2" style="gap:14px;margin-bottom:20px">
+        <div class="form-group"><label>Support Email</label><input type="email" id="c-support-email" placeholder="support@company.co.za"/></div>
+        <div class="form-group"><label>Notification Email</label><input type="email" id="c-notify-email" placeholder="notify@company.co.za"/></div>
+        <div class="form-group"><label>Timezone</label>
+          <select id="c-timezone">
+            <option value="Africa/Johannesburg">Africa/Johannesburg (SAST)</option>
+            <option value="Africa/Cape_Town">Africa/Cape_Town</option>
+            <option value="UTC">UTC</option>
+            <option value="Europe/London">Europe/London</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Currency</label>
+          <select id="c-currency">
+            <option value="ZAR">ZAR — South African Rand</option>
+            <option value="USD">USD — US Dollar</option>
+            <option value="EUR">EUR — Euro</option>
+            <option value="GBP">GBP — British Pound</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="c-email-enabled" checked> Email notifications</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="c-sms-enabled"> SMS notifications</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="c-whatsapp-enabled"> WhatsApp notifications</label>
+      </div>
+ 
+      <div class="form-section-title">Billing & Plan</div>
+      <div class="form-grid cols-2" style="gap:14px;margin-bottom:20px">
+        <div class="form-group"><label>Subscription Plan</label>
+          <select id="c-plan">
+            <option value="starter">Starter</option>
+            <option value="professional">Professional</option>
+            <option value="enterprise">Enterprise</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Monthly Fee (ZAR)</label><input type="number" id="c-monthly-fee" placeholder="1500" min="0"/></div>
+        <div class="form-group"><label>Billing Cycle</label>
+          <select id="c-billing-cycle">
+            <option value="monthly">Monthly</option>
+            <option value="annual">Annual</option>
+            <option value="quarterly">Quarterly</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Payment Method</label>
+          <select id="c-payment-method">
+            <option value="eft">EFT / Bank Transfer</option>
+            <option value="debit_order">Debit Order</option>
+            <option value="credit_card">Credit Card</option>
+            <option value="invoice">Invoice (Net 30)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Billing Start Date</label><input type="date" id="c-billing-start"/></div>
+        <div class="form-group"><label>Trial End Date <span style="font-size:10px;font-weight:400;text-transform:none">(if trial)</span></label><input type="date" id="c-trial-end"/></div>
+      </div>
+ 
+      <div class="form-section-title">Primary Manager Account</div>
+      <div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;padding:14px;margin-bottom:16px;font-size:12px;color:var(--muted)">
+        A manager account will be created and credentials emailed to the address below.
+      </div>
+      <div class="form-grid cols-2" style="gap:14px">
+        <div class="form-group"><label>Manager Name *</label><input type="text" id="c-manager-name" placeholder="John Smith"/><span class="err" id="c-manager-name-err"></span></div>
+        <div class="form-group"><label>Manager Email *</label><input type="email" id="c-manager-email" placeholder="manager@company.co.za"/><span class="err" id="c-manager-email-err"></span></div>
+        <div class="form-group"><label>Manager Phone</label><input type="text" id="c-manager-phone" placeholder="082 000 0000"/></div>
+        <div class="form-group"><label>Temp Password</label><input type="text" id="c-manager-password" placeholder="Auto-generated if blank"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('company-modal')">Cancel</button>
-      <button class="btn-sa" id="btn-save-company" onclick="saveCompany()">Create Company</button>
+      <button class="btn-sa" id="btn-save-company" onclick="saveCompany()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        Onboard Company
+      </button>
     </div>
   </div>
 </div>
 
+<!-- NEW SUBSCRIPTION MODAL-->
+<div class="modal-backdrop" id="new-subscription-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h3>New Subscription</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('new-subscription-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-group">
+        <label>Company *</label>
+        <select id="sub-company-select"><option value="">Loading…</option></select>
+      </div>
+      <div class="form-group">
+        <label>Plan *</label>
+        <select id="sub-plan-select"><option value="">Loading…</option></select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label>Billing Cycle</label>
+          <select id="sub-cycle">
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Trial Days</label>
+          <input type="number" id="sub-trial-days" value="14" min="0" max="90" placeholder="0 = no trial">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Custom Price (ZAR) <span style="font-weight:400;color:var(--muted)">— leave blank to use plan price</span></label>
+        <input type="number" id="sub-price-override" placeholder="e.g. 799.00" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="sub-notes" rows="2" placeholder="Internal notes…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('new-subscription-modal')">Cancel</button>
+      <button class="btn-sa" id="save-sub-btn" onclick="saveNewSubscription()">Create Subscription</button>
+    </div>
+  </div>
+</div>
+ 
+ 
+<!--  EDIT SUBSCRIPTION MODAL-->
+<div class="modal-backdrop" id="edit-subscription-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h3>Edit Subscription</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('edit-subscription-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-group">
+        <label>Plan</label>
+        <select id="edit-sub-plan"><option value="">Loading…</option></select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label>Billing Cycle</label>
+          <select id="edit-sub-cycle">
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="edit-sub-status">
+            <option value="trial">Trial</option>
+            <option value="active">Active</option>
+            <option value="past_due">Past Due</option>
+            <option value="suspended">Suspended</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Custom Price (ZAR)</label>
+        <input type="number" id="edit-sub-price" placeholder="Leave blank to use plan price" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="edit-sub-notes" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('edit-subscription-modal')">Cancel</button>
+      <button class="btn-sa" id="save-edit-sub-btn" onclick="saveEditSubscription()">Save Changes</button>
+    </div>
+  </div>
+</div>
+ 
+ 
+<!--NEW INVOICE MODAL -->
+<div class="modal-backdrop" id="new-invoice-modal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <h3>Create Invoice</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('new-invoice-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+      <!-- Hidden fields populated by JS -->
+      <input type="hidden" id="inv-company-id">
+      <input type="hidden" id="inv-subscription-id">
+      <div class="form-group">
+        <label>Amount (ZAR) *</label>
+        <input type="number" id="inv-amount" min="0.01" step="0.01" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label>Due Date</label>
+        <input type="date" id="inv-due-date">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="inv-notes" rows="2" placeholder="Optional notes…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('new-invoice-modal')">Cancel</button>
+      <button class="btn-sa" id="save-invoice-btn" onclick="saveNewInvoice()">Create Invoice</button>
+    </div>
+  </div>
+</div>
+ 
+ 
+<!--  INVOICES LIST MODAL -->
+<div class="modal-backdrop" id="invoices-modal">
+  <div class="modal" style="max-width:780px">
+    <div class="modal-header">
+      <h3>Invoices</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('invoices-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Invoice #</th>
+              <th>Company</th>
+              <th>Amount</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="invoices-body">
+            <tr><td colspan="6" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('invoices-modal')">Close</button>
+    </div>
+  </div>
+</div>
+ 
 <!-- Edit Company Modal -->
 <div class="modal-backdrop" id="edit-company-modal">
-  <div class="modal" style="max-width:560px">
+  <div class="modal" style="max-width:680px">
     <div class="modal-header">
       <h3>Edit Company</h3>
       <button class="btn btn-ghost btn-sm" onclick="closeModal('edit-company-modal')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="form-grid" style="gap:16px">
-        <input type="hidden" id="edit-c-id" />
-        <div class="form-grid cols-2">
-          <div class="form-group"><label>Company Name *</label><input type="text" id="edit-c-name" /></div>
-          <div class="form-group"><label>Slug *</label><input type="text" id="edit-c-slug" /></div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+      <input type="hidden" id="edit-c-id"/>
+ 
+      <div class="form-section-title">Company Identity</div>
+      <div class="form-grid cols-2" style="gap:14px;margin-bottom:20px">
+        <div class="form-group"><label>Company Name *</label><input type="text" id="edit-c-name"/></div>
+        <div class="form-group"><label>Slug *</label><input type="text" id="edit-c-slug"/></div>
+        <div class="form-group"><label>Domain</label><input type="text" id="edit-c-domain"/></div>
+        <div class="form-group"><label>Status</label>
+          <select id="edit-c-status">
+            <option value="trial">Trial</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="inactive">Inactive</option>
+          </select>
         </div>
-        <div class="form-group"><label>Domain</label><input type="text" id="edit-c-domain" /></div>
-        <div class="form-grid cols-2">
-          <div class="form-group">
-            <label>Status</label>
-            <select id="edit-c-status">
-              <option value="trial">Trial</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-          <div class="form-group"><label>Primary Color</label><input type="color" id="edit-c-color" style="height:41px;padding:4px 8px;cursor:pointer" /></div>
+        <div class="form-group"><label>Primary Color</label><input type="color" id="edit-c-color" style="height:41px;padding:4px 8px;cursor:pointer"/></div>
+        <div class="form-group"><label>Secondary Color</label><input type="color" id="edit-c-secondary-color" style="height:41px;padding:4px 8px;cursor:pointer"/></div>
+        <div class="form-group" style="grid-column:1/-1"><label>Logo URL</label><input type="text" id="edit-c-logo" placeholder="https://…"/></div>
+      </div>
+ 
+      <div class="form-section-title">Company Settings</div>
+      <div class="form-grid cols-2" style="gap:14px;margin-bottom:20px">
+        <div class="form-group"><label>Support Email</label><input type="email" id="edit-c-support-email"/></div>
+        <div class="form-group"><label>Notification Email</label><input type="email" id="edit-c-notify-email"/></div>
+        <div class="form-group"><label>Timezone</label>
+          <select id="edit-c-timezone">
+            <option value="Africa/Johannesburg">Africa/Johannesburg (SAST)</option>
+            <option value="Africa/Cape_Town">Africa/Cape_Town</option>
+            <option value="UTC">UTC</option>
+            <option value="Europe/London">Europe/London</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Currency</label>
+          <select id="edit-c-currency">
+            <option value="ZAR">ZAR — South African Rand</option>
+            <option value="USD">USD — US Dollar</option>
+            <option value="EUR">EUR — Euro</option>
+            <option value="GBP">GBP — British Pound</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="edit-c-email-enabled"> Email notifications</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="edit-c-sms-enabled"> SMS notifications</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="edit-c-whatsapp-enabled"> WhatsApp notifications</label>
+      </div>
+ 
+      <div class="form-section-title">Billing & Plan</div>
+      <div class="form-grid cols-2" style="gap:14px">
+        <div class="form-group"><label>Subscription Plan</label>
+          <select id="edit-c-plan">
+            <option value="starter">Starter</option>
+            <option value="professional">Professional</option>
+            <option value="enterprise">Enterprise</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Monthly Fee (ZAR)</label><input type="number" id="edit-c-monthly-fee" min="0"/></div>
+        <div class="form-group"><label>Billing Cycle</label>
+          <select id="edit-c-billing-cycle">
+            <option value="monthly">Monthly</option>
+            <option value="annual">Annual</option>
+            <option value="quarterly">Quarterly</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Payment Method</label>
+          <select id="edit-c-payment-method">
+            <option value="eft">EFT / Bank Transfer</option>
+            <option value="debit_order">Debit Order</option>
+            <option value="credit_card">Credit Card</option>
+            <option value="invoice">Invoice (Net 30)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Trial End Date</label><input type="date" id="edit-c-trial-end"/></div>
+        <div class="form-group"><label>Payment Status</label>
+          <select id="edit-c-payment-status">
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+            <option value="overdue">Overdue</option>
+          </select>
         </div>
       </div>
     </div>
@@ -244,10 +1142,205 @@
     </div>
   </div>
 </div>
+ 
+<!-- View / Edit Manager Modal -->
+<div class="modal-backdrop" id="manager-modal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h3 id="manager-modal-title">Manager Details</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('manager-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="mgr-id"/>
+      <div class="form-grid cols-2" style="gap:14px">
+        <div class="form-group"><label>Full Name *</label><input type="text" id="mgr-name"/></div>
+        <div class="form-group"><label>Email *</label><input type="email" id="mgr-email"/></div>
+        <div class="form-group"><label>Phone</label><input type="text" id="mgr-phone"/></div>
+        <div class="form-group"><label>Company</label>
+          <select id="mgr-company"></select>
+        </div>
+        <div class="form-group"><label>Status</label>
+          <select id="mgr-status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="suspended">Suspended</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:16px">
+        <div class="form-section-title">Reset Password</div>
+        <div class="form-group"><label>New Password <span style="font-size:10px;font-weight:400;text-transform:none">(leave blank to keep current)</span></label><input type="text" id="mgr-new-password" placeholder="Enter new password or leave blank"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('manager-modal')">Cancel</button>
+      <button class="btn-sa" id="btn-save-manager" onclick="saveManager()">Save Changes</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- Announcement Modal -->
+<div class="modal-backdrop" id="announcement-modal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <h3 id="announcement-modal-title">New Announcement</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('announcement-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+      <div class="form-grid cols-2" style="gap:14px;margin-bottom:16px">
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Title * <span id="title-counter" style="float:right;font-size:10px;color:var(--muted);font-weight:400">0/200</span></label>
+          <input type="text" id="ann-title" maxlength="200" placeholder="e.g. Platform Maintenance Tonight" oninput="updateTitleCounter()"/>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="ann-priority" onchange="updatePriorityPreview()">
+            <option value="info">ℹ️ Info</option>
+            <option value="warning">⚠️ Warning</option>
+            <option value="important">🚨 Important</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Audience</label>
+          <select id="ann-audience" onchange="toggleCompanySelector()">
+            <option value="all">All Companies & Managers</option>
+            <option value="managers_only">Managers Only</option>
+            <option value="specific">Specific Companies</option>
+          </select>
+        </div>
+      </div>
+ 
+      <div id="company-selector" style="display:none;margin-bottom:16px">
+        <div class="form-group">
+          <label>Select Companies</label>
+          <select id="ann-companies" multiple style="height:100px" size="5"></select>
+          <div style="margin-top:6px;display:flex;gap:8px">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="selectAllCompanies()">Select All</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="deselectAllCompanies()">Deselect All</button>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="form-group" style="margin-bottom:16px">
+        <label>Message * <span id="message-counter" style="float:right;font-size:10px;color:var(--muted);font-weight:400">0/2000</span></label>
+        <textarea id="ann-message" rows="5" maxlength="2000" placeholder="Write your announcement…" oninput="updateMessageCounter()" style="resize:vertical"></textarea>
+      </div>
+ 
+      <div style="margin-bottom:16px">
+        <div class="form-section-title">Delivery Channels</div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="send-email" checked> Email</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="send-inapp" checked> In-App</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="send-sms"> SMS</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="send-whatsapp"> WhatsApp</label>
+        </div>
+      </div>
+ 
+      <div style="margin-bottom:8px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600">
+          <input type="checkbox" id="schedule-checkbox" onchange="toggleSchedule()"> Schedule for later
+        </label>
+        <div id="schedule-options" style="display:none;margin-top:12px">
+          <div class="form-group"><label>Send At</label><input type="datetime-local" id="ann-schedule"/></div>
+        </div>
+      </div>
+ 
+      <!-- Preview -->
+      <div style="background:#f8f5ff;border:1px solid #e9d5ff;border-radius:8px;padding:14px;margin-top:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--sa-accent);margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase">Preview</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span id="preview-badge" class="badge-info" style="padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700">Info</span>
+          <span id="preview-title" style="font-weight:700;font-size:14px">Title will appear here</span>
+        </div>
+        <div id="preview-message" style="font-size:13px;color:var(--muted)">Message preview…</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="saveAnnouncementDraft()">Save Draft</button>
+      <button class="btn btn-outline" onclick="closeModal('announcement-modal')">Cancel</button>
+      <button class="btn-sa" id="send-announcement-btn" onclick="sendAnnouncement()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send Now
+      </button>
+    </div>
+  </div>
+</div>
+ 
+<!-- Billing Record Payment Modal -->
+<div class="modal-backdrop" id="billing-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h3>Record Payment</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('billing-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid cols-2" style="gap:14px">
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Company *</label>
+          <select id="bill-company-select"></select>
+        </div>
+        <div class="form-group"><label>Amount (ZAR) *</label><input type="number" id="bill-amount" placeholder="1500" min="0"/></div>
+        <div class="form-group"><label>Payment Date *</label><input type="date" id="bill-date"/></div>
+        <div class="form-group"><label>Method</label>
+          <select id="bill-method">
+            <option value="eft">EFT</option>
+            <option value="debit_order">Debit Order</option>
+            <option value="credit_card">Credit Card</option>
+            <option value="cash">Cash</option>
+          </select>
+        </div>
+        <div class="form-group"><label>New Status</label>
+          <select id="bill-new-status">
+            <option value="paid">Mark as Paid</option>
+            <option value="pending">Mark as Pending</option>
+            <option value="overdue">Mark as Overdue</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1"><label>Reference / Notes</label><input type="text" id="bill-ref" placeholder="Invoice #, bank ref, etc."/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('billing-modal')">Cancel</button>
+      <button class="btn-sa" onclick="saveBillingPayment()">Record Payment</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- Approval Detail Modal -->
+<div class="modal-backdrop" id="approval-modal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <h3 id="approval-modal-title">Review Approval</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('approval-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="approval-detail-content"></div>
+      <div class="form-group" style="margin-top:16px"><label>Notes / Reason (optional)</label><textarea id="approval-notes" rows="3" placeholder="Add a note for the requester…" style="resize:vertical"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="rejectApproval()">✕ Reject</button>
+      <button class="btn btn-outline" onclick="closeModal('approval-modal')">Cancel</button>
+      <button class="btn-sa" onclick="approveApproval()">✓ Approve</button>
+    </div>
+  </div>
+</div>
 
-<div id="toast" class="toast toast--success"><span class="toast__msg"></span></div>
-
+<!--===========================================================================================================================================================================-->
+<!-- Scripts -->
+<!--===========================================================================================================================================================================-->
 <script src="app.js"></script>
 <script src="javascript/superAdmin.js"></script>
+<script src="javascript/superAdmin/profile.js"></script>
+<script src="javascript/superAdmin/Users.js"></script>
+<script src="javascript/superAdmin/Billing.js"></script>
+<script src="javascript/superAdmin/announcements.js"></script>
+<script src="javascript/superAdmin/Profile.js"></script>
+<script src="javascript/superAdmin/systemMetrix.js"></script>
+
+<!--===========================================================================================================================================================================-->
+<!--===========================================================================================================================================================================-->
+
+
 </body>
 </html>
