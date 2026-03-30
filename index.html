@@ -27,17 +27,16 @@
         <p>Register to access your property portal</p>
       </div>
 
-      <!-- Company not found error -->
-      <div id="company-error">
-        <div style="font-size:40px;opacity:.2;margin-bottom:12px">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        </div>
-        <div style="font-weight:600;margin-bottom:6px">Company not found</div>
-        <div style="font-size:13px;color:var(--muted)">This registration link may be invalid. Contact your property manager.</div>
-      </div>
+      <!-- ── Always-visible company picker ───────────────────── -->
+      <div id="reg-form-wrap">
 
-      <!-- Form — shown after company loads -->
-      <div id="reg-form-wrap" style="display:none">
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label>Your Company *</label>
+          <select id="company-select" class="form-input" onchange="onCompanyChange()">
+            <option value="">— Select your company —</option>
+          </select>
+          <span class="field-error" id="company-select-err"></span>
+        </div>
 
         <div class="step-indicator">
           <div class="step-dot active" id="dot-1"></div>
@@ -45,7 +44,7 @@
           <div class="step-dot" id="dot-3"></div>
         </div>
 
-        <!-- Step 1 -->
+        <!-- Step 1: Personal details -->
         <div class="step active" id="step-1">
           <div class="form-row">
             <div class="form-group">
@@ -77,7 +76,9 @@
             <label>Password *</label>
             <div class="pw-wrap">
               <input type="password" id="password" class="form-input" placeholder="Minimum 8 characters">
-              <button type="button" class="pw-toggle" onclick="togglePw('password')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              <button type="button" class="pw-toggle" onclick="togglePw('password')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
             </div>
             <span class="field-error" id="password-err"></span>
           </div>
@@ -85,7 +86,9 @@
             <label>Confirm Password *</label>
             <div class="pw-wrap">
               <input type="password" id="password2" class="form-input" placeholder="Confirm your password">
-              <button type="button" class="pw-toggle" onclick="togglePw('password2')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              <button type="button" class="pw-toggle" onclick="togglePw('password2')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
             </div>
             <span class="field-error" id="password2-err"></span>
           </div>
@@ -95,7 +98,7 @@
           </button>
         </div>
 
-        <!-- Step 2 -->
+        <!-- Step 2: Property & unit -->
         <div class="step" id="step-2">
           <div class="form-group">
             <label>Select Property *</label>
@@ -118,13 +121,19 @@
           </div>
         </div>
 
-        <!-- Step 3 -->
+        <!-- Step 3: Document upload + submit -->
         <div class="step" id="step-3">
           <div class="form-group">
             <label>Upload Document <span style="font-weight:400;text-transform:none;letter-spacing:0">(lease, ID copy — optional)</span></label>
-            <div class="doc-upload-area" id="dropzone" onclick="document.getElementById('doc-input').click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+            <div class="doc-upload-area" id="dropzone"
+                 onclick="document.getElementById('doc-input').click()"
+                 ondragover="event.preventDefault()"
+                 ondrop="handleDrop(event)">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px;display:block"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              <div id="doc-label" style="font-size:12px;color:var(--muted)">Click to upload or drag and drop<br><span style="font-size:10px">PDF, JPG, PNG up to 5MB</span></div>
+              <div id="doc-label" style="font-size:12px;color:var(--muted)">
+                Click to upload or drag and drop<br>
+                <span style="font-size:10px">PDF, JPG, PNG up to 5MB</span>
+              </div>
             </div>
             <input type="file" id="doc-input" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleFileSelect(event)">
           </div>
@@ -135,27 +144,29 @@
           </div>
         </div>
 
-        <!-- Success -->
+        <!-- Success screen -->
         <div class="step" id="step-success">
           <div class="success-state">
             <div class="success-icon">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
             <h2>Registration submitted!</h2>
-            <p style="color:var(--muted);font-size:13px;line-height:1.6;margin:10px 0 20px">Your request has been sent. You will receive an email once your account is approved — usually within 1 business day.</p>
+            <p style="color:var(--muted);font-size:13px;line-height:1.6;margin:10px 0 20px">
+              Your request has been sent. You will receive an email once your account is approved — usually within 1 business day.
+            </p>
             <a href="login.html" class="btn-primary">Go to sign in</a>
           </div>
         </div>
 
-      </div>
+      </div><!-- /#reg-form-wrap -->
 
-      <div class="login-link" id="login-link-bar">Already have an account?<a href="login.html">Sign in</a></div>
+      <div class="login-link" id="login-link-bar">Already have an account? <a href="login.html">Sign in</a></div>
 
       <div class="register-footer">
         <div>Property Management System</div>
         <div class="slug-pill">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          <span id="slug-text">Loading...</span>
+          <span id="slug-text">—</span>
         </div>
       </div>
 
@@ -166,6 +177,5 @@
 <div id="toast" class="toast"></div>
 
 <script src="javascript/authentication/register.js"></script>
-
 </body>
 </html>
