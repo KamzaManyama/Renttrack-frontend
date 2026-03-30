@@ -104,21 +104,35 @@
     </nav>
 
     <div class="sidebar-footer">
-      <div class="sidebar-user">
-        <div class="sidebar-user-avatar" id="sb-avatar">H</div>
-        <div>
-          <div class="sidebar-user-name" id="sb-name">Hana Van Wyk</div>
-          <div class="sidebar-user-role">Tenant</div>
-        </div>
-        <button class="btn-logout" onclick="logout()" title="Sign out">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
-        </button>
-      </div>
+  <div class="sidebar-user">
+    
+    <!-- Avatar -->
+    <div 
+      class="sidebar-user-avatar" 
+      id="sb-avatar" 
+      style="background:var(--sa-grad); cursor:pointer;" 
+      onclick="showProfile()"
+    >
+      H
     </div>
+
+    <!-- Name + Role -->
+    <div style="cursor:pointer;" onclick="showProfile()">
+      <div class="sidebar-user-name" id="sb-name">Hana Van Wyk</div>
+      <div class="sidebar-user-role">Tenant</div>
+    </div>
+
+    <!-- Logout -->
+    <button class="btn-logout" onclick="logout()" title="Sign out">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+    </button>
+
+  </div>
+</div>
   </aside>
 
   <!-- ── Main ── -->
