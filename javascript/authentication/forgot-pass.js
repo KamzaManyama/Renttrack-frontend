@@ -1,34 +1,25 @@
 // ─────────────────────────────────────────────────────────────
 //  forgot-password.js
-//
-//  FIX: was hitting https://kamzamanyama.github.io/api/...
-//  because ENV.API_BASE_URL was empty/missing, causing the fetch
-//  to use the same origin (GitHub Pages) instead of the backend.
-//
-//  ENV.API_BASE_URL must be set in env.js to your backend address,
-//  e.g. 'http://localhost:3000' or 'https://api.yoursite.com'
+//  Reads config from window.__ENV__ (set in env.js)
 // ─────────────────────────────────────────────────────────────
 
 (function () {
 
-  // ── Resolve API base ────────────────────────────────────────
-  // Guard: if ENV is missing or API_BASE_URL is empty we throw
-  // immediately with a clear message instead of silently hitting
-  // the wrong origin.
-  if (typeof ENV === 'undefined' || !ENV.API_BASE_URL) {
+  // ── Read from window.__ENV__ ─────────────────────────────────
+  const __ENV__ = window.__ENV__ || {};
+
+  if (!__ENV__.API_BASE_URL) {
     console.error(
-      '[forgot-password] ENV.API_BASE_URL is not set.\n' +
-      'Open env.js and set API_BASE_URL to your backend address,\n' +
-      'e.g. "http://localhost:3000" or "https://api.yoursite.com".\n' +
-      'GitHub Pages cannot handle API requests.'
+      '[forgot-password] window.__ENV__.API_BASE_URL is not set.\n' +
+      'Check that env.js is loaded BEFORE this script in your HTML.'
     );
   }
 
-  const API = (typeof ENV !== 'undefined' && ENV.API_BASE_URL)
-    ? ENV.API_BASE_URL.replace(/\/$/, '')
-    : null;   // null = we'll block the submit below
+  const API = __ENV__.API_BASE_URL
+    ? __ENV__.API_BASE_URL.replace(/\/$/, '')
+    : null;
 
-  // ── DOM ─────────────────────────────────────────────────────
+  // ── DOM ──────────────────────────────────────────────────────
   const form           = document.getElementById('forgot-form');
   const emailInput     = document.getElementById('email');
   const emailError     = document.getElementById('email-error');
@@ -39,13 +30,12 @@
   const errorMessage   = document.getElementById('error-message');
   const slugSpan       = document.getElementById('slug-text');
 
-  // ── Brand slug ───────────────────────────────────────────────
+  // ── Brand ────────────────────────────────────────────────────
   if (slugSpan) {
-    slugSpan.textContent =
-      (typeof ENV !== 'undefined' && ENV.SLUG) ? ENV.SLUG : 'RentTrack';
+    slugSpan.textContent = __ENV__.COMPANY_SLUG || __ENV__.APP_NAME || 'RentTrack';
   }
 
-  // ── Alert helpers ────────────────────────────────────────────
+  // ── Alerts ───────────────────────────────────────────────────
   function hideAlerts() {
     successAlert.classList.remove('show');
     errorAlert.classList.remove('show');
@@ -96,8 +86,8 @@
 
   function validate() {
     const v = emailInput.value.trim();
-    if (!v)               { setFieldError('Email address is required.');      return false; }
-    if (!isValidEmail(v)) { setFieldError('Enter a valid email address.');    return false; }
+    if (!v)               { setFieldError('Email address is required.');   return false; }
+    if (!isValidEmail(v)) { setFieldError('Enter a valid email address.'); return false; }
     clearFieldError();
     return true;
   }
@@ -108,12 +98,8 @@
     hideAlerts();
     clearFieldError();
 
-    // Block if API URL is not configured
     if (!API) {
-      showError(
-        'API URL is not configured. ' +
-        'Open env.js and set API_BASE_URL to your backend server address.'
-      );
+      showError('API URL is not configured. Check env.js and ensure API_BASE_URL is set.');
       return;
     }
 
@@ -131,20 +117,14 @@
 
       const json = await res.json();
 
-      if (!res.ok) {
-        throw new Error(json.message || `Server error (${res.status})`);
-      }
+      if (!res.ok) throw new Error(json.message || `Server error (${res.status})`);
 
       showSuccess(
-        json.message ||
-        'If that email is registered you will receive a reset link shortly.'
+        json.message || 'If that email is registered you will receive a reset link shortly.'
       );
       form.reset();
 
-      // ── Dev mode: server returns _dev_reset_link ─────────────
-      // When NODE_ENV !== 'production' the backend includes the raw
-      // reset link so you can test without configuring SMTP.
-      // We render it as a clickable link on the page.
+      // Dev mode: backend returns _dev_reset_link when NODE_ENV !== 'production'
       if (json._dev_reset_link) {
         const devBox  = document.getElementById('dev-reset-box');
         const devLink = document.getElementById('dev-reset-link');
@@ -152,22 +132,13 @@
           devLink.href        = json._dev_reset_link;
           devLink.textContent = json._dev_reset_link;
           devBox.style.display = '';
-        } else {
-          // Fallback: log to console if the HTML elements aren't present
-          console.info(
-            '%c[DEV] Password reset link:', 'color:orange;font-weight:bold',
-            json._dev_reset_link
-          );
         }
+        console.info('%c[DEV] Reset link:', 'color:orange;font-weight:bold', json._dev_reset_link);
       }
 
     } catch (err) {
-      // Network errors (CORS, no server, wrong URL) produce TypeError
       if (err instanceof TypeError) {
-        showError(
-          'Could not reach the server. ' +
-          'Check that your backend is running and that API_BASE_URL in env.js is correct.'
-        );
+        showError('Could not reach the server. Check your backend is running and CORS is enabled.');
       } else {
         showError(err.message || 'Unable to send reset link. Please try again.');
       }

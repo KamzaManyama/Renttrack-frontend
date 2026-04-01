@@ -1,27 +1,26 @@
 // ─────────────────────────────────────────────────────────────
 //  reset-password.js
-//
-//  Reads ?token= from the URL, submits to:
-//    POST /api/auth/reset-password  { token, new_password }
-//
-//  ENV.API_BASE_URL must point to your backend, not GitHub Pages.
+//  Reads config from window.__ENV__ (set in env.js)
+//  Reads ?token= from the URL query string.
 // ─────────────────────────────────────────────────────────────
 
 (function () {
 
-  // ── Resolve API base ─────────────────────────────────────────
-  if (typeof ENV === 'undefined' || !ENV.API_BASE_URL) {
+  // ── Read from window.__ENV__ ─────────────────────────────────
+  const __ENV__ = window.__ENV__ || {};
+
+  if (!__ENV__.API_BASE_URL) {
     console.error(
-      '[reset-password] ENV.API_BASE_URL is not set.\n' +
-      'Open env.js and set it to your backend address.'
+      '[reset-password] window.__ENV__.API_BASE_URL is not set.\n' +
+      'Check that env.js is loaded BEFORE this script in your HTML.'
     );
   }
 
-  const API = (typeof ENV !== 'undefined' && ENV.API_BASE_URL)
-    ? ENV.API_BASE_URL.replace(/\/$/, '')
+  const API = __ENV__.API_BASE_URL
+    ? __ENV__.API_BASE_URL.replace(/\/$/, '')
     : null;
 
-  // ── Pull token from URL ───────────────────────────────────────
+  // ── Token from URL ───────────────────────────────────────────
   const token = new URLSearchParams(location.search).get('token');
 
   // ── DOM ──────────────────────────────────────────────────────
@@ -38,19 +37,18 @@
   const tokenError     = document.getElementById('token-error');
   const slugSpan       = document.getElementById('slug-text');
 
-  // ── Brand slug ───────────────────────────────────────────────
+  // ── Brand ────────────────────────────────────────────────────
   if (slugSpan) {
-    slugSpan.textContent =
-      (typeof ENV !== 'undefined' && ENV.SLUG) ? ENV.SLUG : 'RentTrack';
+    slugSpan.textContent = __ENV__.COMPANY_SLUG || __ENV__.APP_NAME || 'RentTrack';
   }
 
-  // ── No token → show error block, hide form ────────────────────
+  // ── No token in URL → hide form, show error ──────────────────
   if (!token) {
     if (tokenError) tokenError.style.display = '';
     if (form)       form.style.display = 'none';
   }
 
-  // ── Alert helpers ────────────────────────────────────────────
+  // ── Alerts ───────────────────────────────────────────────────
   function hideAlerts() {
     successAlert && successAlert.classList.remove('show');
     errorAlert   && errorAlert.classList.remove('show');
@@ -119,12 +117,11 @@
     return ok;
   }
 
-  // ── Password visibility toggle ────────────────────────────────
-  function togglePw(inputId) {
+  // ── Password toggle ───────────────────────────────────────────
+  window.togglePw = function (inputId) {
     const el = document.getElementById(inputId);
     if (el) el.type = el.type === 'password' ? 'text' : 'password';
-  }
-  window.togglePw = togglePw;   // expose for inline onclick
+  };
 
   // ── Submit ───────────────────────────────────────────────────
   async function handleSubmit(e) {
@@ -132,18 +129,13 @@
     hideAlerts();
 
     if (!API) {
-      showError(
-        'API URL is not configured. ' +
-        'Open env.js and set API_BASE_URL to your backend server address.'
-      );
+      showError('API URL is not configured. Check env.js and ensure API_BASE_URL is set.');
       return;
     }
-
     if (!token) {
       showError('No reset token found. Please use the link from your email.');
       return;
     }
-
     if (!validate()) return;
 
     setLoading(true);
@@ -158,28 +150,19 @@
       const json = await res.json();
 
       if (!res.ok || !json.success) {
-        throw new Error(
-          json.message || 'Reset failed. Please request a new reset link.'
-        );
+        throw new Error(json.message || 'Reset failed. Please request a new link.');
       }
 
-      // ── Success ───────────────────────────────────────────────
       if (form) form.style.display = 'none';
       showSuccess(
-        (json.message || 'Password reset successfully!') +
-        ' Redirecting to sign in…'
+        (json.message || 'Password reset successfully!') + ' Redirecting to sign in…'
       );
 
-      setTimeout(() => {
-        window.location.href = '/login.html';
-      }, 3000);
+      setTimeout(() => { window.location.href = '/login.html'; }, 3000);
 
     } catch (err) {
       if (err instanceof TypeError) {
-        showError(
-          'Could not reach the server. ' +
-          'Check that your backend is running and that API_BASE_URL in env.js is correct.'
-        );
+        showError('Could not reach the server. Check your backend is running and CORS is enabled.');
       } else {
         showError(err.message || 'Something went wrong. Please try again.');
       }
