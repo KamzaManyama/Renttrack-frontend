@@ -1,886 +1,704 @@
-// ─────────────────────────────────────────────────────────────
-//  tenant.js  —  RentTrack Tenant Portal
-//  Covers: auth guard, dashboard, tickets, new ticket,
-//          notifications, profile, ticket detail modal,
-//          image attachments upload + lightbox viewer.
-// ─────────────────────────────────────────────────────────────
+/* ── Init ─────────────────────────────────────────────────── */
+document.getElementById('sb-app-name').textContent   = (typeof ENV !== 'undefined' && ENV.APP_NAME) || 'RentTrack';
+document.getElementById('mobileAppName').textContent  = (typeof ENV !== 'undefined' && ENV.APP_NAME) || 'RentTrack';
+document.title = `${(typeof ENV !== 'undefined' && ENV.APP_NAME) || 'RentTrack'} — Tenant Portal`;
 
-const __ENV__  = window.__ENV__ || {};
-const API      = (__ENV__.API_BASE_URL || '').replace(/\/$/, '');
-const TOKEN_KEY = 'rt_token';
-const USER_KEY  = 'rt_user';
-
-// ── Auth helpers ──────────────────────────────────────────────
-function getToken()   { return localStorage.getItem(TOKEN_KEY); }
-function getUser()    { try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch { return null; } }
-function saveUser(u)  { localStorage.setItem(USER_KEY, JSON.stringify(u)); }
-
-function authHeaders() {
-  return { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` };
-}
-
-async function apiFetch(path, opts = {}) {
-  const res  = await fetch(`${API}${path}`, {
-    headers: authHeaders(),
-    ...opts,
-  });
-  const json = await res.json();
-  if (res.status === 401) { logout(); return null; }
-  return json;
-}
-
-function logout() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-  window.location.href = '/login.html';
-}
-
-// ── Guard: redirect to login if not authenticated ─────────────
-(function authGuard() {
-  if (!getToken()) window.location.href = '/login.html';
-})();
-
-// ── State ─────────────────────────────────────────────────────
-let allTickets    = [];
-let currentPage   = 1;
-const PAGE_SIZE   = 10;
-let filterStatus  = '';
-let searchQuery   = '';
-let activeTicketId = null;
-let ntImages      = [];     // staged files for new ticket
-let currentModalTicket = null;
-
-// ─────────────────────────────────────────────────────────────
-// BOOT
-// ─────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
-  const user = getUser();
-  if (!user) { logout(); return; }
-
-  // Seed sidebar with cached user while fresh data loads
-  applyUserToUI(user);
-
-  // Load fresh /auth/me
-  const meRes = await apiFetch('/api/auth/me');
-  if (meRes?.success) {
-    saveUser(meRes.data);
-    applyUserToUI(meRes.data);
+if (typeof Auth !== 'undefined') {
+  if (!Auth.isLoggedIn()) { window.location.replace('login.html'); }
+  const user = Auth.user;
+  if (user && !['tenant','staff'].includes(user.role)) { window.location.replace('caretaker.html'); }
+  if (user) {
+    document.getElementById('sb-name').textContent   = user.name || '—';
+    document.getElementById('sb-avatar').textContent = (user.name || 'T')[0].toUpperCase();
   }
+}
 
-  await Promise.all([loadDashboard(), loadTickets(), loadNotifCount()]);
-  loadProperties();
-  loadCategories();
-  initSwipeGesture();
+/* ── Mobile Sidebar ───────────────────────────────────────── */
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('menuOverlay');
+  const burger  = document.getElementById('burgerMenu');
+  const isOpen  = sidebar.classList.toggle('open');
+  overlay.classList.toggle('active', isOpen);
+  burger.classList.toggle('active', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+
+function closeSidebarMobile() {
+  if (window.innerWidth <= 768) {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar.classList.contains('open')) toggleSidebar();
+  }
+}
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('menuOverlay').classList.remove('active');
+    document.getElementById('burgerMenu').classList.remove('active');
+    document.body.style.overflow = '';
+  }
 });
 
-function applyUserToUI(user) {
-  if (!user) return;
-  const initials = (user.name || 'T').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-  const avatarEl = document.getElementById('sb-avatar');
-  if (avatarEl) {
-    if (user.profile_photo) {
-      avatarEl.innerHTML = `<img src="${user.profile_photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-    } else {
-      avatarEl.textContent = initials;
-    }
+/* Swipe gesture */
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+document.addEventListener('touchend', e => {
+  if (window.innerWidth > 768) return;
+  const dx = e.changedTouches[0].screenX - touchStartX;
+  const sidebar = document.getElementById('sidebar');
+  if (dx > 50  && touchStartX < 30 && !sidebar.classList.contains('open')) toggleSidebar();
+  if (dx < -50 && touchStartX > 200 && sidebar.classList.contains('open'))  toggleSidebar();
+}, { passive: true });
+
+/* Swipe hint */
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.innerWidth <= 768 && !localStorage.getItem('swipeHintShown')) {
+    const h = document.getElementById('swipeHint');
+    h.classList.add('show');
+    localStorage.setItem('swipeHintShown', 'true');
+    setTimeout(() => h.classList.remove('show'), 3000);
   }
-  setText('sb-name',   user.name || '');
-  setText('sb-app-name', __ENV__.APP_NAME || 'RentTrack');
-  setText('mobileAppName', __ENV__.APP_NAME || 'RentTrack');
+});
+
+/* ── Notification Modal ───────────────────────────────────── */
+let _notifTimer = null;
+function showNotification(title, message, icon = '') {
+  document.getElementById('notification-icon').textContent    = icon;
+  document.getElementById('notification-title').textContent   = title;
+  document.getElementById('notification-message').textContent = message;
+  document.getElementById('notification-modal').classList.add('active');
+  clearTimeout(_notifTimer);
+  _notifTimer = setTimeout(closeNotificationModal, 4000);
+}
+function closeNotificationModal() {
+  document.getElementById('notification-modal').classList.remove('active');
 }
 
-// ─────────────────────────────────────────────────────────────
-// PAGE ROUTING
-// ─────────────────────────────────────────────────────────────
-const PAGE_TITLES = {
-  dashboard:    'Dashboard',
-  tickets:      'My Tickets',
-  'new-ticket': 'Log New Issue',
-  notifications:'Notifications',
-  profile:      'My Profile',
+/* Confirm Modal */
+function showConfirm(title, message, onConfirm, icon = '') {
+  document.getElementById('confirm-icon').textContent    = icon;
+  document.getElementById('confirm-title').textContent   = title;
+  document.getElementById('confirm-message').textContent = message;
+  const btn = document.getElementById('confirm-yes-btn');
+  btn.onclick = () => { onConfirm(); closeConfirmModal(); };
+  document.getElementById('confirm-modal').classList.add('active');
+}
+function closeConfirmModal() {
+  document.getElementById('confirm-modal').classList.remove('active');
+}
+
+/* ── State ────────────────────────────────────────────────── */
+let allTickets = [], filteredTickets = [], currentPage = 1, currentStatus = '', openTicketId = null;
+const PER_PAGE = 10;
+
+/* ── Attachment state ─────────────────────────────────────── */
+const NT_MAX_FILES = 5;
+const NT_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+let ntFiles = []; // [{ id, file, dataUrl }]
+
+/* ── Status / Priority config ─────────────────────────────── */
+const STATUS_CLASS = {
+  open:        'badge-open',
+  in_progress: 'badge-in-progress',
+  assigned:    'badge-assigned',
+  completed:   'badge-completed',
+  closed:      'badge-closed',
+};
+const PRIORITY_CLASS = {
+  urgent: 'badge-urgent',
+  high:   'badge-high',
+  medium: 'badge-medium',
+  low:    'badge-low',
+};
+const STATUS_ICON = {
+  open:        `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>`,
+  in_progress: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>`,
+  assigned:    `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+  completed:   `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  closed:      `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>`,
+};
+const PRIORITY_ICON = {
+  urgent: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  high:   `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>`,
+  medium: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  low:    `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/></svg>`,
 };
 
+/* ── Navigation ───────────────────────────────────────────── */
 function showPage(id, navEl) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const page = document.getElementById(`page-${id}`);
-  if (page) page.classList.add('active');
+  document.getElementById(`page-${id}`).classList.add('active');
   if (navEl) navEl.classList.add('active');
-  setText('page-title', PAGE_TITLES[id] || '');
-
+  const titles = { dashboard:'Dashboard', tickets:'My Tickets', 'new-ticket':'Log New Issue', notifications:'Notifications' };
+  document.getElementById('page-title').textContent = titles[id] || '';
+  if (id === 'tickets')       loadMyTickets();
   if (id === 'notifications') loadNotifications();
-  if (id === 'profile')       loadProfile();
-  if (id === 'tickets')       renderTickets();
+  if (id === 'new-ticket')    loadFormData();
+  if (id === 'dashboard')     loadDashboard();
 }
 
-// ─────────────────────────────────────────────────────────────
-// DASHBOARD
-// ─────────────────────────────────────────────────────────────
-async function loadDashboard() {
-  const res = await apiFetch('/api/tickets');
-  if (!res?.success) return;
-  allTickets = res.data || [];
-
-  const open     = allTickets.filter(t => t.status === 'open').length;
-  const progress = allTickets.filter(t => t.status === 'in_progress').length;
-  const done     = allTickets.filter(t => ['completed','closed'].includes(t.status)).length;
-
-  setText('stat-open',     open);
-  setText('stat-progress', progress);
-  setText('stat-done',     done);
-  setText('stat-total',    allTickets.length);
-
-  const recent = [...allTickets].slice(0, 5);
-  const grid   = document.getElementById('dash-tickets-grid');
-  if (grid) grid.innerHTML = recent.length ? recent.map(ticketCard).join('') : emptyState('No tickets yet');
+function logout() {
+  if (typeof Auth !== 'undefined') Auth.clear();
+  sessionStorage.setItem('rt_logged_out', '1');
+  window.location.replace('login.html');
 }
 
-// ─────────────────────────────────────────────────────────────
-// TICKETS
-// ─────────────────────────────────────────────────────────────
-async function loadTickets() {
-  const res = await apiFetch('/api/tickets');
-  if (!res?.success) return;
-  allTickets = res.data || [];
-  renderTickets();
-  updateTicketDot();
-}
-
-function renderTickets() {
-  let tickets = allTickets;
-
-  if (filterStatus) tickets = tickets.filter(t => t.status === filterStatus);
-  if (searchQuery)  tickets = tickets.filter(t =>
-    t.title.toLowerCase().includes(searchQuery) ||
-    (t.ticket_number || '').toLowerCase().includes(searchQuery)
-  );
-
-  const totalPages = Math.max(1, Math.ceil(tickets.length / PAGE_SIZE));
-  if (currentPage > totalPages) currentPage = 1;
-  const paged = tickets.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-  const grid = document.getElementById('tickets-grid');
-  if (grid) grid.innerHTML = paged.length ? paged.map(ticketCard).join('') : emptyState('No tickets found');
-
-  renderPagination(totalPages);
-}
-
-function ticketCard(t) {
-  const statusClass = {
-    open: 'status-open', in_progress: 'status-progress', on_hold: 'status-hold',
-    completed: 'status-done', closed: 'status-done', assigned: 'status-assigned',
-    cancelled: 'status-cancelled',
-  }[t.status] || 'status-open';
-
-  const priorityClass = { urgent: 'priority-urgent', high: 'priority-high', medium: 'priority-medium', low: 'priority-low' }[t.priority] || '';
-  const date = t.created_at ? new Date(t.created_at).toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' }) : '';
+/* ── Ticket Card Renderer ─────────────────────────────────── */
+function renderTicketCard(t) {
+  const statusLabel   = (t.status || 'unknown').replace('_', ' ');
+  const priorityLabel = t.priority || 'unknown';
+  const statusClass   = STATUS_CLASS[t.status]   || 'badge-closed';
+  const priorityClass = PRIORITY_CLASS[t.priority] || 'badge-medium';
+  const statusIcon    = STATUS_ICON[t.status]   || '';
+  const priorityIcon  = PRIORITY_ICON[t.priority] || '';
+  const priorityCardClass = `priority-${t.priority || 'medium'}`;
 
   return `
-    <div class="ticket-card" onclick="openTicketModal('${t.id}')">
-      <div class="ticket-card-header">
-        <span class="ticket-number">${esc(t.ticket_number || '')}</span>
-        <span class="status-badge ${statusClass}">${formatStatus(t.status)}</span>
+    <div class="ticket-card ${priorityCardClass}" onclick="openTicket('${t.id}')">
+      <div class="ticket-header">
+        <div class="ticket-title-section">
+          <h4>${t.title || 'Untitled'}</h4>
+          <span class="ticket-number">${t.ticket_number || '—'}</span>
+        </div>
       </div>
-      <div class="ticket-title">${esc(t.title)}</div>
+      <div class="ticket-badges">
+        <span class="badge ${statusClass}">${statusIcon} ${statusLabel}</span>
+        <span class="badge ${priorityClass}">${priorityIcon} ${priorityLabel}</span>
+        ${t.category_name ? `<span class="badge badge-category">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          ${t.category_name}
+        </span>` : ''}
+      </div>
       <div class="ticket-meta">
-        <span class="${priorityClass}">${capitalize(t.priority || 'medium')} priority</span>
-        ${t.property_name ? `<span>· ${esc(t.property_name)}</span>` : ''}
-        ${t.unit_number   ? `<span>· Unit ${esc(t.unit_number)}</span>` : ''}
+        <span class="ticket-meta-item">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          ${t.property_name || '—'}
+        </span>
+        ${t.unit_number ? `<span class="ticket-meta-item">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Unit ${t.unit_number}
+        </span>` : ''}
+        <span class="ticket-meta-item">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          ${t.assigned_to_name || 'Unassigned'}
+        </span>
+        <span class="ticket-meta-item">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${typeof timeAgo === 'function' ? timeAgo(t.created_at) : t.created_at}
+        </span>
       </div>
-      <div class="ticket-date">${date}</div>
-    </div>`;
+    </div>
+  `;
 }
+
+/* ── Dashboard ────────────────────────────────────────────── */
+async function loadDashboard() {
+  try {
+    const resp = await GET('/api/tickets');
+    const allT = resp.data || [];
+    let op=0, ip=0, done=0;
+    allT.forEach(t => {
+      if (['open','assigned'].includes(t.status)) op++;
+      if (t.status === 'in_progress') ip++;
+      if (['completed','closed'].includes(t.status)) done++;
+    });
+    document.getElementById('stat-open').textContent     = op;
+    document.getElementById('stat-progress').textContent = ip;
+    document.getElementById('stat-done').textContent     = done;
+    document.getElementById('stat-total').textContent    = allT.length;
+    if (op > 0) document.getElementById('ticket-dot').style.display = 'inline-block';
+
+    const grid = document.getElementById('dash-tickets-grid');
+    if (!allT.length) {
+      grid.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">No tickets yet. Log your first issue!</div>`;
+      return;
+    }
+    grid.innerHTML = allT.slice(0,5).map(renderTicketCard).join('');
+  } catch(e) { showNotification('Error', e.message, '⚠'); }
+}
+
+/* ── My Tickets ───────────────────────────────────────────── */
+async function loadMyTickets() {
+  document.getElementById('tickets-grid').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">Loading tickets…</div>`;
+  try {
+    const q = currentStatus ? `?status=${currentStatus}` : '';
+    const resp = await GET(`/api/tickets${q}`);
+    allTickets = resp.data || [];
+    applySearch();
+  } catch(e) { showNotification('Error', e.message, '⚠'); }
+}
+
+function applySearch() {
+  const term = document.getElementById('ticket-search').value.toLowerCase();
+  filteredTickets = term
+    ? allTickets.filter(t => t.title.toLowerCase().includes(term) || (t.ticket_number||'').toLowerCase().includes(term))
+    : [...allTickets];
+  currentPage = 1;
+  renderTicketsGrid();
+}
+function searchTickets() { applySearch(); }
 
 function filterStatus(el) {
   document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
-  filterStatus = el.dataset.status;
-  currentPage  = 1;
-  renderTickets();
+  currentStatus = el.dataset.status;
+  loadMyTickets();
 }
 
-function searchTickets() {
-  searchQuery = (document.getElementById('ticket-search')?.value || '').toLowerCase();
-  currentPage = 1;
-  renderTickets();
-}
+function renderTicketsGrid() {
+  const start = (currentPage-1)*PER_PAGE;
+  const page  = filteredTickets.slice(start, start+PER_PAGE);
+  const grid  = document.getElementById('tickets-grid');
 
-function renderPagination(totalPages) {
-  const el = document.getElementById('tickets-pagination');
-  if (!el || totalPages <= 1) { if (el) el.innerHTML = ''; return; }
-  let html = `<button class="btn btn-ghost btn-sm" ${currentPage===1?'disabled':''} onclick="goPage(${currentPage-1})">← Prev</button>`;
-  for (let i = 1; i <= totalPages; i++) {
-    html += `<button class="btn btn-sm ${i===currentPage?'btn-primary':'btn-ghost'}" onclick="goPage(${i})">${i}</button>`;
-  }
-  html += `<button class="btn btn-ghost btn-sm" ${currentPage===totalPages?'disabled':''} onclick="goPage(${currentPage+1})">Next →</button>`;
-  el.innerHTML = html;
-}
-
-function goPage(n) { currentPage = n; renderTickets(); }
-
-function updateTicketDot() {
-  const dot  = document.getElementById('ticket-dot');
-  const open = allTickets.filter(t => t.status === 'open').length;
-  if (dot) dot.style.display = open > 0 ? '' : 'none';
-}
-
-// ─────────────────────────────────────────────────────────────
-// TICKET DETAIL MODAL
-// ─────────────────────────────────────────────────────────────
-async function openTicketModal(id) {
-  activeTicketId = id;
-  document.getElementById('ticket-modal').classList.add('active');
-  document.getElementById('modal-ticket-content').innerHTML = loadingSpinner();
-  document.getElementById('updates-list').innerHTML = loadingSpinner();
-  document.getElementById('modal-details').innerHTML = '';
-  document.getElementById('update-msg').value = '';
-
-  // Load ticket + updates + attachments in parallel
-  const [tRes, uRes, aRes] = await Promise.all([
-    apiFetch(`/api/tickets/${id}`),
-    apiFetch(`/api/tickets/${id}/updates`),
-    apiFetch(`/api/tickets/${id}/attachments`),
-  ]);
-
-  if (!tRes?.success) {
-    document.getElementById('modal-ticket-content').innerHTML = '<p style="color:var(--red);padding:16px">Could not load ticket.</p>';
+  if (!filteredTickets.length) {
+    grid.innerHTML = `<div style="text-align:center;padding:48px;color:var(--muted);font-size:13px">No tickets found.</div>`;
+    document.getElementById('tickets-pagination').innerHTML = '';
     return;
   }
+  grid.innerHTML = page.map(renderTicketCard).join('');
 
-  const ticket      = tRes.data;
-  const updates     = uRes?.data || [];
-  const attachments = aRes?.data || [];
-  currentModalTicket = ticket;
-
-  setText('modal-ticket-num', ticket.ticket_number || 'Ticket');
-  renderModalContent(ticket, attachments);
-  renderUpdates(updates);
-  renderModalDetails(ticket);
-}
-
-function renderModalContent(t, attachments) {
-  const statusClass = {
-    open:'status-open', in_progress:'status-progress', on_hold:'status-hold',
-    completed:'status-done', closed:'status-done', assigned:'status-assigned',
-  }[t.status] || 'status-open';
-
-  const images = attachments.filter(a => a.file_type === 'image');
-  const docs   = attachments.filter(a => a.file_type !== 'image');
-
-  const imgHtml = images.length ? `
-    <div style="margin-top:16px">
-      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">
-        Photos (${images.length})
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px">
-        ${images.map((img, i) => `
-          <div style="position:relative;width:88px;height:88px;border-radius:8px;overflow:hidden;cursor:pointer;border:1px solid var(--border)"
-               onclick="openLightbox(${i}, ${JSON.stringify(images.map(x => x.file_url)).replace(/"/g, '&quot;')})">
-            <img src="${esc(img.file_url)}" alt="${esc(img.file_name || 'photo')}"
-                 style="width:100%;height:100%;object-fit:cover"
-                 onerror="this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f3f4f6;font-size:20px\'>🖼️</div>'">
-          </div>`).join('')}
-      </div>
-    </div>` : '';
-
-  const docHtml = docs.length ? `
-    <div style="margin-top:12px">
-      ${docs.map(d => `
-        <a href="${esc(d.file_url)}" target="_blank" download="${esc(d.file_name || 'file')}"
-           style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);text-decoration:none;margin-bottom:6px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          ${esc(d.file_name || 'Download file')}
-        </a>`).join('')}
-    </div>` : '';
-
-  document.getElementById('modal-ticket-content').innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-      <h4 style="margin:0;font-size:16px;font-weight:700;flex:1">${esc(t.title)}</h4>
-      <span class="status-badge ${statusClass}">${formatStatus(t.status)}</span>
-    </div>
-    ${t.description ? `<p style="margin:12px 0 0;font-size:14px;color:var(--muted-text,#555);line-height:1.6">${esc(t.description)}</p>` : ''}
-    ${imgHtml}
-    ${docHtml}`;
-}
-
-function renderUpdates(updates) {
-  const list = document.getElementById('updates-list');
-  if (!updates.length) {
-    list.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:12px 0">No updates yet.</p>';
-    return;
+  const total = filteredTickets.length;
+  const pages = Math.ceil(total / PER_PAGE);
+  let pagesHtml = '';
+  for (let i = 1; i <= pages; i++) {
+    if (pages <= 7 || Math.abs(i - currentPage) <= 2 || i === 1 || i === pages) {
+      pagesHtml += `<button class="pagination-page ${i===currentPage?'active':''}" onclick="changePage(${i})">${i}</button>`;
+    }
   }
-  list.innerHTML = updates.map(u => {
-    const date = new Date(u.created_at).toLocaleString('en-ZA', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
-    const isStatus = !!u.status_change;
-    return `
-      <div style="padding:12px 0;border-bottom:1px solid var(--border)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <span style="font-size:12px;font-weight:600">${esc(u.user_name || 'Staff')}</span>
-          <span style="font-size:11px;color:var(--muted)">${date}</span>
-        </div>
-        ${isStatus
-          ? `<div style="font-size:12px;color:var(--muted);font-style:italic">Status changed to <strong>${formatStatus(u.status_change)}</strong></div>`
-          : `<div style="font-size:13px;line-height:1.5">${esc(u.message || '')}</div>`}
-      </div>`;
-  }).join('');
-}
-
-function renderModalDetails(t) {
-  const rows = [
-    ['Property',  t.property_name],
-    ['Unit',      t.unit_number],
-    ['Category',  t.category_name],
-    ['Priority',  capitalize(t.priority)],
-    ['Assigned',  t.assigned_to_name],
-    ['Created',   t.created_at ? new Date(t.created_at).toLocaleString('en-ZA') : '—'],
-  ].filter(([, v]) => v);
-
-  document.getElementById('modal-details').innerHTML = `
-    <div style="margin-top:12px">
-      ${rows.map(([k, v]) => `
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
-          <span style="color:var(--muted)">${k}</span>
-          <span style="font-weight:500">${esc(String(v))}</span>
-        </div>`).join('')}
+  document.getElementById('tickets-pagination').innerHTML = `
+    <span class="pagination-info">${total} ticket${total!==1?'s':''}</span>
+    <div class="pagination-pages" style="display:flex;gap:4px;align-items:center;">
+      <button class="pagination-btn" onclick="changePage(${currentPage-1})" ${currentPage<=1?'disabled':''}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      ${pagesHtml}
+      <button class="pagination-btn" onclick="changePage(${currentPage+1})" ${currentPage>=pages?'disabled':''}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>`;
 }
 
-function modalTab(tab, btn) {
+function changePage(p) {
+  if (p < 1 || p > Math.ceil(filteredTickets.length/PER_PAGE)) return;
+  currentPage = p;
+  renderTicketsGrid();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ── Ticket Detail Modal ──────────────────────────────────── */
+function badgeHtml(label, cls, iconHtml) {
+  return `<span class="badge ${cls}">${iconHtml || ''} ${label}</span>`;
+}
+
+async function openTicket(id) {
+  openTicketId = id;
+  document.getElementById('ticket-modal').classList.add('open');
+  document.getElementById('modal-ticket-content').innerHTML = `
+    <div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">
+      <div class="spinner" style="border-color:rgba(0,0,0,.1);border-top-color:var(--blue);margin:0 auto 12px;width:24px;height:24px;"></div>
+      Loading…
+    </div>`;
+  document.getElementById('updates-list').innerHTML = '';
+
+  try {
+    const [tkResp, updResp, attResp] = await Promise.all([
+      GET(`/api/tickets/${id}`),
+      GET(`/api/tickets/${id}/updates`),
+      GET(`/api/tickets/${id}/attachments`).catch(() => ({ data: [] })),
+    ]);
+    const t           = tkResp.data;
+    const updates     = updResp.data || [];
+    const attachments = attResp.data || [];
+
+    document.getElementById('modal-ticket-num').textContent = t.ticket_number || '—';
+
+    const statusLabel   = (t.status||'unknown').replace('_',' ');
+    const priorityLabel = t.priority || 'unknown';
+
+    // Build attachments gallery if any
+    const attHtml = attachments.length ? `
+      <div style="margin-top:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">
+          Photos (${attachments.length})
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${attachments.map(a => `
+            <a href="${a.file_url}" target="_blank" rel="noopener"
+              style="width:80px;height:80px;border-radius:8px;overflow:hidden;display:block;border:1.5px solid var(--border);flex-shrink:0;">
+              <img src="${a.file_url}" alt="${a.file_name || 'photo'}"
+                style="width:100%;height:100%;object-fit:cover;display:block;">
+            </a>`).join('')}
+        </div>
+      </div>` : '';
+
+    document.getElementById('modal-ticket-content').innerHTML = `
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+        ${badgeHtml(statusLabel,   STATUS_CLASS[t.status]   || 'badge-closed', STATUS_ICON[t.status]   || '')}
+        ${badgeHtml(priorityLabel, PRIORITY_CLASS[t.priority] || 'badge-medium', PRIORITY_ICON[t.priority] || '')}
+        ${t.category_name ? `<span class="badge badge-category">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          ${t.category_name}
+        </span>` : ''}
+      </div>
+      <div class="ticket-detail-title">${t.title || 'Untitled'}</div>
+      <div class="ticket-detail-desc">${t.description || '<em style="color:var(--muted)">No description provided.</em>'}</div>
+      <div class="ticket-detail-meta">
+        <span class="ticket-detail-meta-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          ${t.property_name || '—'}
+        </span>
+        ${t.unit_number ? `<span class="ticket-detail-meta-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Unit ${t.unit_number}
+        </span>` : ''}
+        <span class="ticket-detail-meta-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          ${t.assigned_to_name || 'Unassigned'}
+        </span>
+        <span class="ticket-detail-meta-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          ${typeof fmtDate === 'function' ? fmtDate(t.created_at) : t.created_at}
+        </span>
+      </div>
+      ${attHtml}
+    `;
+
+    document.getElementById('updates-list').innerHTML = updates.length
+      ? updates.map(u => `
+          <div class="update-item">
+            <div class="update-avatar">${(u.user_name||'?')[0].toUpperCase()}</div>
+            <div class="update-body">
+              <div class="update-meta">
+                <strong>${u.user_name || 'System'}</strong>
+                <span>${typeof timeAgo === 'function' ? timeAgo(u.created_at) : u.created_at}</span>
+                ${u.is_internal ? `<span class="badge badge-medium" style="font-size:10px;">Internal</span>` : ''}
+              </div>
+              <div class="update-msg">${u.message || ''}</div>
+            </div>
+          </div>
+        `).join('')
+      : '<p style="color:var(--muted);font-size:13px;padding:12px 0">No updates yet.</p>';
+
+  } catch(e) { showNotification('Error', e.message, '⚠'); }
+}
+
+function closeModal() {
+  document.getElementById('ticket-modal').classList.remove('open');
+  openTicketId = null;
+}
+
+function modalTab(tab, el) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  el.classList.add('active');
   document.getElementById('modal-updates').style.display = tab === 'updates' ? '' : 'none';
   document.getElementById('modal-details').style.display = tab === 'details' ? '' : 'none';
 }
 
 async function postUpdate() {
-  const msg = (document.getElementById('update-msg')?.value || '').trim();
-  if (!msg || !activeTicketId) return;
-
-  const btn = document.querySelector('.comment-box .btn-primary');
-  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
-
-  const res = await apiFetch(`/api/tickets/${activeTicketId}/updates`, {
-    method: 'POST',
-    body:   JSON.stringify({ message: msg }),
-  });
-
-  if (btn) { btn.disabled = false; btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send`; }
-
-  if (res?.success) {
+  const msg = document.getElementById('update-msg').value.trim();
+  if (!msg) return;
+  try {
+    await POST(`/api/tickets/${openTicketId}/updates`, { message: msg });
     document.getElementById('update-msg').value = '';
-    const uRes = await apiFetch(`/api/tickets/${activeTicketId}/updates`);
-    if (uRes?.success) renderUpdates(uRes.data);
-    // Refresh ticket list silently
-    loadTickets();
-  }
+    showNotification('Success', 'Comment added successfully.', '✓');
+    openTicket(openTicketId);
+  } catch(e) { showNotification('Error', e.message, '⚠'); }
 }
 
-function closeModal() {
-  document.getElementById('ticket-modal')?.classList.remove('active');
-  activeTicketId = null;
-  currentModalTicket = null;
-}
+/* ── New Ticket Form ──────────────────────────────────────── */
+// Store occupancy for submit enforcement
+let _tenantOccupancy = null;
 
-// ─────────────────────────────────────────────────────────────
-// LIGHTBOX — image viewer
-// ─────────────────────────────────────────────────────────────
-let lbImages = [];
-let lbIndex  = 0;
+async function loadFormData() {
+  try {
+    const [catResp, myUnitResp] = await Promise.all([
+      GET('/api/categories'),
+      GET('/api/auth/my-unit').catch(() => ({ data: null })),
+    ]);
 
-function openLightbox(index, urls) {
-  lbImages = urls;
-  lbIndex  = index;
-  renderLightbox();
-}
+    _tenantOccupancy = myUnitResp.data; // cache for submitTicket enforcement
 
-function renderLightbox() {
-  // Remove existing
-  document.getElementById('rt-lightbox')?.remove();
+    // Categories are fine to load normally
+    document.getElementById('nt-category').innerHTML =
+      '<option value="">— Select category —</option>' +
+      (catResp.data||[]).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 
-  const lb = document.createElement('div');
-  lb.id = 'rt-lightbox';
-  lb.style.cssText = `
-    position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;
-    display:flex;align-items:center;justify-content:center;flex-direction:column;
-  `;
-
-  lb.innerHTML = `
-    <!-- Close -->
-    <button onclick="closeLightbox()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:white;font-size:28px;cursor:pointer;line-height:1">✕</button>
-
-    <!-- Counter -->
-    <div style="position:absolute;top:18px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.7);font-size:13px">
-      ${lbIndex + 1} / ${lbImages.length}
-    </div>
-
-    <!-- Image -->
-    <img id="lb-img" src="${esc(lbImages[lbIndex])}"
-         style="max-width:90vw;max-height:80vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.6)"
-         onerror="this.alt='Image failed to load'">
-
-    <!-- Prev / Next -->
-    ${lbImages.length > 1 ? `
-      <button onclick="lbPrev()" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:white;width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer">‹</button>
-      <button onclick="lbNext()" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:white;width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer">›</button>
-    ` : ''}
-
-    <!-- Thumbnails -->
-    ${lbImages.length > 1 ? `
-      <div style="display:flex;gap:8px;margin-top:16px;overflow-x:auto;max-width:90vw;padding:4px">
-        ${lbImages.map((url, i) => `
-          <img src="${esc(url)}" onclick="lbGoto(${i})"
-               style="width:56px;height:56px;object-fit:cover;border-radius:6px;cursor:pointer;opacity:${i===lbIndex?1:.5};border:2px solid ${i===lbIndex?'white':'transparent'};flex-shrink:0">`
-        ).join('')}
-      </div>
-    ` : ''}
-  `;
-
-  // Close on backdrop click
-  lb.addEventListener('click', e => { if (e.target === lb) closeLightbox(); });
-  document.body.appendChild(lb);
-
-  // Keyboard nav
-  document.addEventListener('keydown', lbKeyHandler);
-}
-
-function lbKeyHandler(e) {
-  if (e.key === 'ArrowRight') lbNext();
-  if (e.key === 'ArrowLeft')  lbPrev();
-  if (e.key === 'Escape')     closeLightbox();
-}
-
-function lbNext() { lbIndex = (lbIndex + 1) % lbImages.length; renderLightbox(); }
-function lbPrev() { lbIndex = (lbIndex - 1 + lbImages.length) % lbImages.length; renderLightbox(); }
-function lbGoto(i) { lbIndex = i; renderLightbox(); }
-function closeLightbox() {
-  document.getElementById('rt-lightbox')?.remove();
-  document.removeEventListener('keydown', lbKeyHandler);
-}
-
-// ─────────────────────────────────────────────────────────────
-// NEW TICKET
-// ─────────────────────────────────────────────────────────────
-async function loadProperties() {
-  const res = await apiFetch('/api/properties');
-  if (!res?.success) return;
-  const sel = document.getElementById('nt-property');
-  if (!sel) return;
-  res.data.forEach(p => {
-    const o = document.createElement('option');
-    o.value = p.id; o.textContent = p.name;
-    sel.appendChild(o);
-  });
-
-  // Auto-fill property + unit from tenancy
-  const unitRes = await apiFetch('/api/auth/my-unit');
-  if (unitRes?.success && unitRes.data) {
-    const u = unitRes.data;
-    sel.value = u.property_id || '';
-    await loadUnits();
+    const propSel = document.getElementById('nt-property');
     const unitSel = document.getElementById('nt-unit');
-    if (unitSel) unitSel.value = u.unit_id || '';
-    const hint = document.getElementById('nt-unit-hint');
-    const hintTxt = document.getElementById('nt-unit-hint-text');
-    if (hint && hintTxt) {
-      hintTxt.textContent = `Auto-filled: ${u.property_name}, Unit ${u.unit_number}`;
-      hint.style.display = '';
+    const hint    = document.getElementById('nt-unit-hint');
+
+    if (_tenantOccupancy) {
+      // Only show the ONE property this tenant belongs to — no other options
+      propSel.innerHTML = `<option value="${_tenantOccupancy.property_id}">${_tenantOccupancy.property_name}</option>`;
+      propSel.value     = _tenantOccupancy.property_id;
+
+      // Only show the ONE unit this tenant lives in — no other options
+      unitSel.innerHTML = `<option value="${_tenantOccupancy.unit_id}">Unit ${_tenantOccupancy.unit_number}</option>`;
+      unitSel.value     = _tenantOccupancy.unit_id;
+
+      // Style as read-only display — pointer-events off so nothing is clickable
+      [propSel, unitSel].forEach(el => {
+        el.style.pointerEvents  = 'none';
+        el.style.background     = 'var(--surface, #f8fafc)';
+        el.style.color          = 'var(--text)';
+        el.style.cursor         = 'default';
+        el.style.border         = '1.5px solid var(--border)';
+        el.setAttribute('aria-readonly', 'true');
+      });
+
+      if (hint) {
+        hint.style.display  = 'flex';
+        const span = document.getElementById('nt-unit-hint-text');
+        if (span) span.textContent =
+          `${_tenantOccupancy.property_name} · Unit ${_tenantOccupancy.unit_number}`;
+      }
+    } else {
+      // No active tenancy — tenant portal shouldn't normally reach here,
+      // but degrade gracefully by loading all properties
+      const propResp = await GET('/api/properties').catch(() => ({ data: [] }));
+      propSel.innerHTML =
+        '<option value="">— Select property —</option>' +
+        (propResp.data||[]).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+      if (hint) hint.style.display = 'none';
     }
-  }
+
+  } catch(e) { showNotification('Error', 'Could not load form data: ' + e.message, '⚠'); }
 }
 
 async function loadUnits() {
-  const propId = document.getElementById('nt-property')?.value;
-  const sel    = document.getElementById('nt-unit');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">— Select unit (optional) —</option>';
-  if (!propId) return;
-  const res = await apiFetch(`/api/properties/${propId}/units`);
-  if (!res?.success) return;
-  res.data.forEach(u => {
-    const o = document.createElement('option');
-    o.value = u.id; o.textContent = `Unit ${u.unit_number}`;
-    sel.appendChild(o);
+  // When a tenant has an active occupancy loadFormData handles everything.
+  // This function only runs for staff/managers without a fixed unit.
+  if (_tenantOccupancy) return;
+  const propId = document.getElementById('nt-property').value;
+  const sel = document.getElementById('nt-unit');
+  sel.innerHTML = '<option value="">Loading…</option>';
+  if (!propId) { sel.innerHTML = '<option value="">— Select unit (optional) —</option>'; return; }
+  try {
+    const resp = await GET(`/api/properties/${propId}/units`);
+    sel.innerHTML = '<option value="">— Select unit (optional) —</option>' +
+      (resp.data||[]).map(u => `<option value="${u.id}">Unit ${u.unit_number}</option>`).join('');
+  } catch(e) { sel.innerHTML = '<option value="">No units found</option>'; }
+}
+
+function clearErrors_nt() {
+  ['nt-title','nt-property'].forEach(id => {
+    document.getElementById(id).classList.remove('error');
+    const err = document.getElementById(`${id}-err`);
+    if (err) { err.textContent = ''; err.classList.remove('show'); }
   });
-}
-
-async function loadCategories() {
-  const res = await apiFetch('/api/categories');
-  if (!res?.success) return;
-  const sel = document.getElementById('nt-category');
-  if (!sel) return;
-  res.data.forEach(c => {
-    const o = document.createElement('option');
-    o.value = c.id; o.textContent = c.name;
-    sel.appendChild(o);
-  });
-}
-
-// ── Image staging ─────────────────────────────────────────────
-function ntDragOver(e)  { e.preventDefault(); document.getElementById('nt-dropzone')?.classList.add('drag-over'); }
-function ntDragLeave()  { document.getElementById('nt-dropzone')?.classList.remove('drag-over'); }
-function ntDrop(e)      { e.preventDefault(); ntDragLeave(); ntAddFiles(Array.from(e.dataTransfer.files)); }
-function ntFilesSelected(e) { ntAddFiles(Array.from(e.target.files)); e.target.value = ''; }
-
-function ntAddFiles(files) {
-  const imageFiles = files.filter(f => f.type.startsWith('image/'));
-  if (!imageFiles.length) { showModal('warning', 'No images', 'Only image files (JPG, PNG, etc.) are accepted.'); return; }
-
-  const remaining = 5 - ntImages.length;
-  const toAdd     = imageFiles.slice(0, remaining);
-
-  toAdd.forEach(file => {
-    if (file.size > 5 * 1024 * 1024) { showModal('warning', 'File too large', `${file.name} is over 5 MB.`); return; }
-    const reader = new FileReader();
-    reader.onload = e => {
-      ntImages.push({ file, dataUrl: e.target.result });
-      renderNtPreviews();
-    };
-    reader.readAsDataURL(file);
-  });
-
-  if (imageFiles.length > remaining) {
-    showModal('info', 'Limit reached', `Only ${remaining} more photo(s) can be added (max 5).`);
-  }
-}
-
-function renderNtPreviews() {
-  const grid = document.getElementById('nt-preview-grid');
-  if (!grid) return;
-  grid.innerHTML = ntImages.map((img, i) => `
-    <div style="position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
-      <img src="${img.dataUrl}" style="width:100%;height:100%;object-fit:cover">
-      <button onclick="ntRemoveImage(${i})"
-              style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);border:none;color:white;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;line-height:18px;padding:0">✕</button>
-    </div>`).join('');
-}
-
-function ntRemoveImage(i) { ntImages.splice(i, 1); renderNtPreviews(); }
-
-function clearNewTicket() {
-  ['nt-title','nt-desc'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  ['nt-property','nt-unit','nt-category'].forEach(id => { const el = document.getElementById(id); if (el) el.selectedIndex = 0; });
-  document.getElementById('nt-priority').value = 'medium';
-  ntImages = [];
-  renderNtPreviews();
-  ['nt-title-err','nt-property-err'].forEach(id => { const el = document.getElementById(id); if (el) { el.textContent = ''; el.style.display = 'none'; } });
-  const hint = document.getElementById('nt-unit-hint'); if (hint) hint.style.display = 'none';
 }
 
 async function submitTicket() {
-  const title    = (document.getElementById('nt-title')?.value || '').trim();
-  const propId   = document.getElementById('nt-property')?.value;
+  clearErrors_nt();
+  const title    = document.getElementById('nt-title').value.trim();
+  // Always use the server-verified occupancy — never trust the form value directly
+  const propId = _tenantOccupancy
+    ? _tenantOccupancy.property_id
+    : document.getElementById('nt-property').value;
+  const unitId = _tenantOccupancy
+    ? _tenantOccupancy.unit_id
+    : document.getElementById('nt-unit').value;
+  const catId    = document.getElementById('nt-category').value;
+  const priority = document.getElementById('nt-priority').value;
+  const desc     = document.getElementById('nt-desc').value.trim();
   let valid = true;
 
-  const titleErr = document.getElementById('nt-title-err');
-  const propErr  = document.getElementById('nt-property-err');
-  if (titleErr) { titleErr.textContent = ''; titleErr.style.display = 'none'; }
-  if (propErr)  { propErr.textContent  = ''; propErr.style.display  = 'none'; }
-
-  if (!title)  { if (titleErr) { titleErr.textContent = 'Title is required'; titleErr.style.display = ''; } valid = false; }
-  if (!propId) { if (propErr)  { propErr.textContent  = 'Property is required'; propErr.style.display = ''; } valid = false; }
+  if (!title)              { setErr('nt-title', 'Issue title is required.'); valid = false; }
+  else if (title.length < 5) { setErr('nt-title', 'Title must be at least 5 characters.'); valid = false; }
+  if (!propId)             { setErr('nt-property', 'Please select a property.'); valid = false; }
   if (!valid) return;
 
   const btn = document.getElementById('submit-ticket-btn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner" style="border-color:rgba(255,255,255,.3);border-top-color:white;width:14px;height:14px;margin-right:6px"></span>Submitting…';
+  btn.innerHTML = `<span class="spinner"></span> Submitting…`;
 
-  const body = {
-    title,
-    description:  document.getElementById('nt-desc')?.value || '',
-    property_id:  propId,
-    unit_id:      document.getElementById('nt-unit')?.value || undefined,
-    category_id:  document.getElementById('nt-category')?.value || undefined,
-    priority:     document.getElementById('nt-priority')?.value || 'medium',
-  };
+  try {
+    const ticketResp = await POST('/api/tickets', {
+      title, property_id: propId,
+      unit_id:     unitId  || undefined,
+      category_id: catId   || undefined,
+      priority, description: desc || undefined,
+    });
+    const ticket = ticketResp.data;
 
-  const res = await apiFetch('/api/tickets', { method: 'POST', body: JSON.stringify(body) });
+    // Upload any attached photos
+    if (ntFiles.length) {
+      btn.innerHTML = `<span class="spinner"></span> Uploading ${ntFiles.length} photo${ntFiles.length > 1 ? 's' : ''}…`;
+      for (const item of ntFiles) {
+        try {
+          await POST(`/api/tickets/${ticket.id}/attachments`, {
+            file_url:  item.dataUrl,
+            file_name: item.file.name,
+            file_size: item.file.size,
+            mime_type: item.file.type,
+          });
+        } catch (attErr) {
+          // Non-fatal — ticket is already created
+          console.warn('Photo upload failed:', item.file.name, attErr.message);
+        }
+      }
+    }
 
-  if (!res?.success) {
+    showNotification('Ticket submitted', `${ticket.ticket_number} has been received!`, '✓');
+    clearNewTicket();
+    showPage('tickets', document.querySelectorAll('.nav-item')[1]);
+    loadMyTickets();
+  } catch(e) { showNotification('Error', e.message, '⚠'); }
+  finally {
     btn.disabled = false;
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Submit Ticket';
-    showModal('error', 'Failed', res?.message || 'Could not create ticket. Please try again.');
-    return;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Submit Ticket`;
   }
-
-  const ticketId = res.data.id;
-
-  // Upload images as attachments
-  if (ntImages.length) {
-    await Promise.allSettled(ntImages.map(img =>
-      apiFetch(`/api/tickets/${ticketId}/attachments`, {
-        method: 'POST',
-        body: JSON.stringify({
-          file_url:  img.dataUrl,
-          file_name: img.file.name,
-          file_size: img.file.size,
-          mime_type: img.file.type,
-        }),
-      })
-    ));
-  }
-
-  clearNewTicket();
-  btn.disabled = false;
-  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Submit Ticket';
-
-  showModal('success', 'Ticket Submitted!', `Your ticket "${title}" (${res.data.ticket_number}) has been submitted and the team has been notified.`);
-  await loadTickets();
-  await loadDashboard();
-  showPage('tickets', document.querySelectorAll('.nav-item')[1]);
 }
 
-// ─────────────────────────────────────────────────────────────
-// NOTIFICATIONS
-// ─────────────────────────────────────────────────────────────
-async function loadNotifCount() {
-  const res = await apiFetch('/api/notifications');
-  if (!res?.success) return;
-  const unread = (res.data || []).filter(n => !n.is_read).length;
-  const dot = document.getElementById('notif-dot');
-  if (dot) dot.style.display = unread > 0 ? '' : 'none';
+function setErr(id, msg) {
+  document.getElementById(id).classList.add('error');
+  const e = document.getElementById(`${id}-err`);
+  if (e) { e.textContent = msg; e.classList.add('show'); }
 }
 
+function clearNewTicket() {
+  ['nt-title','nt-desc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('nt-category').selectedIndex = 0;
+  document.getElementById('nt-priority').value = 'medium';
+  clearErrors_nt();
+  ntClearFiles();
+  // Re-run loadFormData so property/unit prefill and locks are restored
+  loadFormData();
+}
+
+/* ── Photo attachment handlers ────────────────────────────── */
+function ntFilesSelected(event) {
+  ntAddFiles(Array.from(event.target.files));
+  event.target.value = '';
+}
+
+function ntDragOver(event) {
+  event.preventDefault();
+  const dz = document.getElementById('nt-dropzone');
+  if (dz) { dz.style.borderColor = 'var(--blue)'; dz.style.background = 'rgba(59,130,246,.04)'; }
+}
+
+function ntDragLeave() {
+  const dz = document.getElementById('nt-dropzone');
+  if (dz) { dz.style.borderColor = ''; dz.style.background = ''; }
+}
+
+function ntDrop(event) {
+  event.preventDefault();
+  ntDragLeave();
+  ntAddFiles(Array.from(event.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+}
+
+function ntAddFiles(files) {
+  for (const file of files) {
+    if (ntFiles.length >= NT_MAX_FILES) {
+      showNotification('Too many photos', `Maximum ${NT_MAX_FILES} photos allowed.`, '⚠'); break;
+    }
+    if (!file.type.startsWith('image/')) {
+      showNotification('Invalid file', `${file.name}: only images are supported.`, '⚠'); continue;
+    }
+    if (file.size > NT_MAX_BYTES) {
+      showNotification('File too large', `${file.name} exceeds the 5 MB limit.`, '⚠'); continue;
+    }
+    const itemId = `ntf-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    const reader = new FileReader();
+    reader.onload = e => {
+      ntFiles.push({ id: itemId, file, dataUrl: e.target.result });
+      ntRenderPreviews();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function ntRemoveFile(itemId) {
+  ntFiles = ntFiles.filter(f => f.id !== itemId);
+  ntRenderPreviews();
+}
+
+function ntClearFiles() {
+  ntFiles = [];
+  ntRenderPreviews();
+}
+
+function ntRenderPreviews() {
+  const grid = document.getElementById('nt-preview-grid');
+  const dz   = document.getElementById('nt-dropzone');
+  if (!grid) return;
+
+  // Hide drop zone once limit is reached
+  if (dz) dz.style.display = ntFiles.length >= NT_MAX_FILES ? 'none' : '';
+
+  grid.innerHTML = ntFiles.map(item => `
+    <div style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1.5px solid var(--border);flex-shrink:0;">
+      <img src="${item.dataUrl}" alt="${item.file.name}"
+        style="width:100%;height:100%;object-fit:cover;display:block;">
+      <button onclick="ntRemoveFile('${item.id}')"
+        style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);border:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
+        ✕
+      </button>
+    </div>`
+  ).join('');
+}
+
+/* ── Notifications ────────────────────────────────────────── */
 async function loadNotifications() {
-  const res = await apiFetch('/api/notifications');
   const list = document.getElementById('notif-list');
-  if (!list) return;
-  if (!res?.success || !res.data.length) {
-    list.innerHTML = `<div style="padding:32px;text-align:center;color:var(--muted);font-size:14px">No notifications</div>`;
-    return;
-  }
-  list.innerHTML = res.data.map(n => {
-    const date = new Date(n.created_at).toLocaleString('en-ZA', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
-    return `
-      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;${n.is_read?'':'background:var(--highlight,#f0f7ff)'}"
-           onclick="markRead('${n.id}', this)">
-        <div style="width:8px;height:8px;border-radius:50%;background:${n.is_read?'transparent':'var(--blue)'}; margin-top:5px;flex-shrink:0"></div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:${n.is_read?'400':'600'};margin-bottom:2px">${esc(n.title)}</div>
-          <div style="font-size:12px;color:var(--muted)">${esc(n.message || '')}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px">${date}</div>
-        </div>
-      </div>`;
-  }).join('');
-  loadNotifCount();
+  list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">Loading…</div>';
+  try {
+    const resp   = await GET('/api/notifications');
+    const notifs = resp.data || [];
+    if (!notifs.length) {
+      list.innerHTML = '<div style="text-align:center;padding:48px;color:var(--muted);font-size:13px">No notifications yet.</div>';
+      return;
+    }
+    let unread = 0;
+    list.innerHTML = notifs.map(n => {
+      if (!n.is_read) unread++;
+      return `
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .15s;${!n.is_read ? 'background:#f7f9ff;' : ''}"
+          id="notif-${n.id}" onclick="readNotif('${n.id}')">
+          <div style="width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0;background:${n.is_read ? 'transparent' : 'var(--blue)'}"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:${n.is_read ? 500 : 700};font-size:13.5px;margin-bottom:3px;color:var(--text)">${n.title || 'Notification'}</div>
+            <div style="font-size:13px;color:var(--text-2);line-height:1.5">${n.message || ''}</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:4px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${typeof timeAgo === 'function' ? timeAgo(n.created_at) : n.created_at}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+    document.getElementById('notif-dot').style.display = unread > 0 ? 'inline-block' : 'none';
+  } catch(e) { showNotification('Error', e.message, '⚠'); }
 }
 
-async function markRead(id, el) {
-  el?.querySelector('div:first-child')?.setAttribute('style', 'width:8px;height:8px;border-radius:50%;background:transparent;margin-top:5px;flex-shrink:0');
-  el?.style.removeProperty('background');
-  await apiFetch(`/api/notifications/${id}/read`, { method: 'PUT' });
-  loadNotifCount();
+async function readNotif(id) {
+  try {
+    await PUT(`/api/notifications/${id}/read`, {});
+    const el = document.getElementById(`notif-${id}`);
+    if (el) {
+      el.style.background = 'transparent';
+      const dot = el.querySelector('div[style*="border-radius:50%"]');
+      if (dot) dot.style.background = 'transparent';
+    }
+  } catch(e) {}
 }
 
 async function markAllRead() {
-  await apiFetch('/api/notifications/read-all', { method: 'PUT' });
-  loadNotifications();
+  try {
+    await PUT('/api/notifications/read-all', {});
+    document.getElementById('notif-dot').style.display = 'none';
+    showNotification('All read', 'All notifications marked as read.', '✓');
+    loadNotifications();
+  } catch(e) { showNotification('Error', e.message, '⚠'); }
 }
 
-// ─────────────────────────────────────────────────────────────
-// PROFILE
-// ─────────────────────────────────────────────────────────────
-async function loadProfile() {
-  const res = await apiFetch('/api/auth/me');
-  if (!res?.success) return;
-  const u = res.data;
-  saveUser(u);
+/* ── Close modal on backdrop click ───────────────────────── */
+document.getElementById('ticket-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
 
-  // Avatar
-  const avatarEl = document.getElementById('profile-avatar');
-  if (avatarEl) {
-    if (u.profile_photo) {
-      avatarEl.innerHTML = `<img src="${u.profile_photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-    } else {
-      const initials = (u.name || 'T').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-      avatarEl.textContent = initials;
-    }
-  }
-
-  setText('profile-name-display',  u.name);
-  setText('profile-email-display', u.email);
-  setText('profile-role-display',  capitalize(u.role));
-  setText('profile-last-login',    u.last_login ? new Date(u.last_login).toLocaleDateString('en-ZA') : 'Never');
-
-  setVal('profile-name',  u.name);
-  setVal('profile-email', u.email);
-  setVal('profile-phone', u.phone || '');
-
-  // Clear password fields
-  ['current-password','new-password','confirm-password'].forEach(id => setVal(id, ''));
-}
-
-function showProfile() {
-  showPage('profile', null);
-  // Also set nav active
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-}
-
-async function saveProfileChanges() {
-  const name  = (document.getElementById('profile-name')?.value  || '').trim();
-  const email = (document.getElementById('profile-email')?.value || '').trim();
-  const phone = (document.getElementById('profile-phone')?.value || '').trim();
-  const curPw = document.getElementById('current-password')?.value || '';
-  const newPw = document.getElementById('new-password')?.value || '';
-  const conPw = document.getElementById('confirm-password')?.value || '';
-
-  let hasError = false;
-
-  // Validate
-  if (!name)  { showModal('warning', 'Validation', 'Name is required.'); return; }
-  if (!email) { showModal('warning', 'Validation', 'Email is required.'); return; }
-
-  // Profile update
-  const profileRes = await apiFetch('/api/auth/profile', {
-    method: 'PUT',
-    body:   JSON.stringify({ name, email, phone }),
-  });
-  if (!profileRes?.success) {
-    showModal('error', 'Update Failed', profileRes?.message || 'Could not update profile.');
-    hasError = true;
-  }
-
-  // Password change (only if fields are filled)
-  if (curPw || newPw || conPw) {
-    if (!curPw) { showModal('warning', 'Password', 'Enter your current password.'); return; }
-    if (newPw.length < 8) { showModal('warning', 'Password', 'New password must be at least 8 characters.'); return; }
-    if (newPw !== conPw)  { showModal('warning', 'Password', 'New passwords do not match.'); return; }
-
-    const pwRes = await apiFetch('/api/auth/change-password', {
-      method: 'POST',
-      body:   JSON.stringify({ current_password: curPw, new_password: newPw }),
-    });
-    if (!pwRes?.success) {
-      showModal('error', 'Password Error', pwRes?.message || 'Could not change password.');
-      hasError = true;
-    } else {
-      ['current-password','new-password','confirm-password'].forEach(id => setVal(id, ''));
-    }
-  }
-
-  if (!hasError) {
-    showModal('success', 'Saved!', 'Your profile has been updated successfully.');
-    loadProfile();
-    applyUserToUI(getUser());
-  }
-}
-
-async function handleProfilePhoto(e) {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  if (file.size > 5 * 1024 * 1024) { showModal('warning', 'Too large', 'Profile photo must be under 5 MB.'); return; }
-
-  const reader = new FileReader();
-  reader.onload = async ev => {
-    const dataUrl = ev.target.result;
-    const res = await apiFetch('/api/auth/profile', {
-      method: 'PUT',
-      body:   JSON.stringify({ profile_photo: dataUrl }),
-    });
-    if (res?.success) {
-      const u = getUser();
-      if (u) { u.profile_photo = dataUrl; saveUser(u); }
-      loadProfile();
-      applyUserToUI(getUser());
-    } else {
-      showModal('error', 'Upload Failed', res?.message || 'Could not update photo.');
-    }
-  };
-  reader.readAsDataURL(file);
-}
-
-function togglePassword(id) {
-  const el = document.getElementById(id);
-  if (el) el.type = el.type === 'password' ? 'text' : 'password';
-}
-
-// ─────────────────────────────────────────────────────────────
-// NOTIFICATION / CONFIRM MODALS
-// ─────────────────────────────────────────────────────────────
-const ICONS = {
-  success: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>`,
-  error:   `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
-  warning: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
-  info:    `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
-};
-
-function showModal(type, title, message) {
-  const el = document.getElementById('notification-modal');
-  if (!el) return;
-  document.getElementById('notification-icon').innerHTML    = ICONS[type] || ICONS.info;
-  document.getElementById('notification-title').textContent = title;
-  document.getElementById('notification-message').textContent = message;
-  el.classList.add('active');
-}
-
-function closeNotificationModal() {
-  document.getElementById('notification-modal')?.classList.remove('active');
-}
-
-function openConfirmModal(title, message, onConfirm) {
-  const el = document.getElementById('confirm-modal');
-  if (!el) return;
-  document.getElementById('confirm-icon').innerHTML    = ICONS.warning;
-  document.getElementById('confirm-title').textContent = title;
-  document.getElementById('confirm-message').textContent = message;
-  const btn = document.getElementById('confirm-yes-btn');
-  if (btn) { btn.onclick = () => { closeConfirmModal(); onConfirm(); }; }
-  el.classList.add('active');
-}
-
-function closeConfirmModal() {
-  document.getElementById('confirm-modal')?.classList.remove('active');
-}
-
-// ─────────────────────────────────────────────────────────────
-// SIDEBAR / MOBILE
-// ─────────────────────────────────────────────────────────────
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('menuOverlay');
-  sidebar?.classList.toggle('open');
-  overlay?.classList.toggle('active');
-}
-
-function closeSidebarMobile() {
-  if (window.innerWidth > 768) return;
-  document.getElementById('sidebar')?.classList.remove('open');
-  document.getElementById('menuOverlay')?.classList.remove('active');
-}
-
-function initSwipeGesture() {
-  let startX = 0;
-  document.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
-  document.addEventListener('touchend', e => {
-    const diff = e.changedTouches[0].clientX - startX;
-    if (startX < 30 && diff > 60)  toggleSidebar();
-    if (diff < -60) { document.getElementById('sidebar')?.classList.remove('open'); document.getElementById('menuOverlay')?.classList.remove('active'); }
-  }, { passive: true });
-
-  // Hide swipe hint after first touch
-  const hint = document.getElementById('swipeHint');
-  if (hint) document.addEventListener('touchstart', () => { hint.style.display = 'none'; }, { once: true });
-}
-
-// ─────────────────────────────────────────────────────────────
-// UTILITIES
-// ─────────────────────────────────────────────────────────────
-function setText(id, text) { const el = document.getElementById(id); if (el) el.textContent = text ?? ''; }
-function setVal(id, val)   { const el = document.getElementById(id); if (el) el.value = val ?? ''; }
-
-function esc(str) {
-  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
-
-function formatStatus(s) {
-  return { open:'Open', in_progress:'In Progress', on_hold:'On Hold', completed:'Completed', closed:'Closed', assigned:'Assigned', cancelled:'Cancelled' }[s] || capitalize(s);
-}
-
-function loadingSpinner() {
-  return `<div style="text-align:center;padding:32px;color:var(--muted)"><div class="spinner" style="margin:0 auto 10px;width:22px;height:22px;border-color:rgba(0,0,0,.1);border-top-color:var(--blue)"></div>Loading…</div>`;
-}
-
-function emptyState(msg) {
-  return `<div style="padding:40px;text-align:center;color:var(--muted);font-size:14px">${esc(msg)}</div>`;
-}
+/* ── Boot ─────────────────────────────────────────────────── */
+loadDashboard();
