@@ -1,15 +1,36 @@
+/* ════════════════════════════════════════════════════════════════
+   tenant.js  —  RentTrack Tenant Portal
+   Uses:  GET / POST / PUT helpers from app.js
+          Auth object from app.js
+          timeAgo() / fmtDate() from app.js
+          window.__ENV__ from env.js
+   ════════════════════════════════════════════════════════════════ */
+
 /* ── Init ─────────────────────────────────────────────────── */
-document.getElementById('sb-app-name').textContent   = (typeof ENV !== 'undefined' && ENV.APP_NAME) || 'RentTrack';
-document.getElementById('mobileAppName').textContent  = (typeof ENV !== 'undefined' && ENV.APP_NAME) || 'RentTrack';
-document.title = `${(typeof ENV !== 'undefined' && ENV.APP_NAME) || 'RentTrack'} — Tenant Portal`;
+const __ENV__ = window.__ENV__ || {};
+
+document.getElementById('sb-app-name').textContent  = __ENV__.APP_NAME || 'RentTrack';
+document.getElementById('mobileAppName').textContent = __ENV__.APP_NAME || 'RentTrack';
+document.title = `${__ENV__.APP_NAME || 'RentTrack'} — Tenant Portal`;
 
 if (typeof Auth !== 'undefined') {
   if (!Auth.isLoggedIn()) { window.location.replace('login.html'); }
   const user = Auth.user;
-  if (user && !['tenant','staff'].includes(user.role)) { window.location.replace('caretaker.html'); }
+  if (user && !['tenant', 'staff'].includes(user.role)) { window.location.replace('caretaker.html'); }
   if (user) {
-    document.getElementById('sb-name').textContent   = user.name || '—';
-    document.getElementById('sb-avatar').textContent = (user.name || 'T')[0].toUpperCase();
+    document.getElementById('sb-name').textContent = user.name || '—';
+    _applyAvatar(document.getElementById('sb-avatar'), user);
+  }
+}
+
+/* ── Avatar helper (sidebar + profile) ───────────────────── */
+function _applyAvatar(el, user) {
+  if (!el) return;
+  if (user && user.profile_photo) {
+    el.innerHTML = `<img src="${_esc(user.profile_photo)}"
+      style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`;
+  } else {
+    el.textContent = ((user && user.name) || 'T')[0].toUpperCase();
   }
 }
 
@@ -45,19 +66,16 @@ let touchStartX = 0;
 document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
 document.addEventListener('touchend', e => {
   if (window.innerWidth > 768) return;
-  const dx = e.changedTouches[0].screenX - touchStartX;
+  const dx      = e.changedTouches[0].screenX - touchStartX;
   const sidebar = document.getElementById('sidebar');
-  if (dx > 50  && touchStartX < 30 && !sidebar.classList.contains('open')) toggleSidebar();
+  if (dx > 50  && touchStartX < 30  && !sidebar.classList.contains('open')) toggleSidebar();
   if (dx < -50 && touchStartX > 200 && sidebar.classList.contains('open'))  toggleSidebar();
 }, { passive: true });
 
-/* Swipe hint */
 document.addEventListener('DOMContentLoaded', () => {
   if (window.innerWidth <= 768 && !localStorage.getItem('swipeHintShown')) {
     const h = document.getElementById('swipeHint');
-    h.classList.add('show');
-    localStorage.setItem('swipeHintShown', 'true');
-    setTimeout(() => h.classList.remove('show'), 3000);
+    if (h) { h.classList.add('show'); localStorage.setItem('swipeHintShown', 'true'); setTimeout(() => h.classList.remove('show'), 3000); }
   }
 });
 
@@ -75,7 +93,6 @@ function closeNotificationModal() {
   document.getElementById('notification-modal').classList.remove('active');
 }
 
-/* Confirm Modal */
 function showConfirm(title, message, onConfirm, icon = '') {
   document.getElementById('confirm-icon').textContent    = icon;
   document.getElementById('confirm-title').textContent   = title;
@@ -94,23 +111,15 @@ const PER_PAGE = 10;
 
 /* ── Attachment state ─────────────────────────────────────── */
 const NT_MAX_FILES = 5;
-const NT_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+const NT_MAX_BYTES = 5 * 1024 * 1024;
 let ntFiles = []; // [{ id, file, dataUrl }]
 
 /* ── Status / Priority config ─────────────────────────────── */
 const STATUS_CLASS = {
-  open:        'badge-open',
-  in_progress: 'badge-in-progress',
-  assigned:    'badge-assigned',
-  completed:   'badge-completed',
-  closed:      'badge-closed',
+  open: 'badge-open', in_progress: 'badge-in-progress', assigned: 'badge-assigned',
+  completed: 'badge-completed', closed: 'badge-closed',
 };
-const PRIORITY_CLASS = {
-  urgent: 'badge-urgent',
-  high:   'badge-high',
-  medium: 'badge-medium',
-  low:    'badge-low',
-};
+const PRIORITY_CLASS = { urgent: 'badge-urgent', high: 'badge-high', medium: 'badge-medium', low: 'badge-low' };
 const STATUS_ICON = {
   open:        `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>`,
   in_progress: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>`,
@@ -131,12 +140,21 @@ function showPage(id, navEl) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`page-${id}`).classList.add('active');
   if (navEl) navEl.classList.add('active');
-  const titles = { dashboard:'Dashboard', tickets:'My Tickets', 'new-ticket':'Log New Issue', notifications:'Notifications' };
+  const titles = {
+    dashboard: 'Dashboard', tickets: 'My Tickets',
+    'new-ticket': 'Log New Issue', notifications: 'Notifications', profile: 'My Profile',
+  };
   document.getElementById('page-title').textContent = titles[id] || '';
   if (id === 'tickets')       loadMyTickets();
   if (id === 'notifications') loadNotifications();
   if (id === 'new-ticket')    loadFormData();
   if (id === 'dashboard')     loadDashboard();
+  if (id === 'profile')       loadProfile();
+}
+
+function showProfile() {
+  showPage('profile', null);
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 }
 
 function logout() {
@@ -147,20 +165,20 @@ function logout() {
 
 /* ── Ticket Card Renderer ─────────────────────────────────── */
 function renderTicketCard(t) {
-  const statusLabel   = (t.status || 'unknown').replace('_', ' ');
-  const priorityLabel = t.priority || 'unknown';
-  const statusClass   = STATUS_CLASS[t.status]   || 'badge-closed';
-  const priorityClass = PRIORITY_CLASS[t.priority] || 'badge-medium';
-  const statusIcon    = STATUS_ICON[t.status]   || '';
-  const priorityIcon  = PRIORITY_ICON[t.priority] || '';
+  const statusLabel    = (t.status || 'unknown').replace('_', ' ');
+  const priorityLabel  = t.priority || 'unknown';
+  const statusClass    = STATUS_CLASS[t.status]    || 'badge-closed';
+  const priorityClass  = PRIORITY_CLASS[t.priority] || 'badge-medium';
+  const statusIcon     = STATUS_ICON[t.status]     || '';
+  const priorityIcon   = PRIORITY_ICON[t.priority]  || '';
   const priorityCardClass = `priority-${t.priority || 'medium'}`;
 
   return `
     <div class="ticket-card ${priorityCardClass}" onclick="openTicket('${t.id}')">
       <div class="ticket-header">
         <div class="ticket-title-section">
-          <h4>${t.title || 'Untitled'}</h4>
-          <span class="ticket-number">${t.ticket_number || '—'}</span>
+          <h4>${_esc(t.title || 'Untitled')}</h4>
+          <span class="ticket-number">${_esc(t.ticket_number || '—')}</span>
         </div>
       </div>
       <div class="ticket-badges">
@@ -168,29 +186,28 @@ function renderTicketCard(t) {
         <span class="badge ${priorityClass}">${priorityIcon} ${priorityLabel}</span>
         ${t.category_name ? `<span class="badge badge-category">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-          ${t.category_name}
+          ${_esc(t.category_name)}
         </span>` : ''}
       </div>
       <div class="ticket-meta">
         <span class="ticket-meta-item">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          ${t.property_name || '—'}
+          ${_esc(t.property_name || '—')}
         </span>
         ${t.unit_number ? `<span class="ticket-meta-item">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          Unit ${t.unit_number}
+          Unit ${_esc(t.unit_number)}
         </span>` : ''}
         <span class="ticket-meta-item">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          ${t.assigned_to_name || 'Unassigned'}
+          ${_esc(t.assigned_to_name || 'Unassigned')}
         </span>
         <span class="ticket-meta-item">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           ${typeof timeAgo === 'function' ? timeAgo(t.created_at) : t.created_at}
         </span>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
 /* ── Dashboard ────────────────────────────────────────────── */
@@ -198,11 +215,11 @@ async function loadDashboard() {
   try {
     const resp = await GET('/api/tickets');
     const allT = resp.data || [];
-    let op=0, ip=0, done=0;
+    let op = 0, ip = 0, done = 0;
     allT.forEach(t => {
-      if (['open','assigned'].includes(t.status)) op++;
+      if (['open', 'assigned'].includes(t.status)) op++;
       if (t.status === 'in_progress') ip++;
-      if (['completed','closed'].includes(t.status)) done++;
+      if (['completed', 'closed'].includes(t.status)) done++;
     });
     document.getElementById('stat-open').textContent     = op;
     document.getElementById('stat-progress').textContent = ip;
@@ -215,25 +232,25 @@ async function loadDashboard() {
       grid.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">No tickets yet. Log your first issue!</div>`;
       return;
     }
-    grid.innerHTML = allT.slice(0,5).map(renderTicketCard).join('');
-  } catch(e) { showNotification('Error', e.message, '⚠'); }
+    grid.innerHTML = allT.slice(0, 5).map(renderTicketCard).join('');
+  } catch (e) { showNotification('Error', e.message, '⚠'); }
 }
 
 /* ── My Tickets ───────────────────────────────────────────── */
 async function loadMyTickets() {
   document.getElementById('tickets-grid').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">Loading tickets…</div>`;
   try {
-    const q = currentStatus ? `?status=${currentStatus}` : '';
+    const q    = currentStatus ? `?status=${currentStatus}` : '';
     const resp = await GET(`/api/tickets${q}`);
     allTickets = resp.data || [];
     applySearch();
-  } catch(e) { showNotification('Error', e.message, '⚠'); }
+  } catch (e) { showNotification('Error', e.message, '⚠'); }
 }
 
 function applySearch() {
-  const term = document.getElementById('ticket-search').value.toLowerCase();
+  const term     = (document.getElementById('ticket-search')?.value || '').toLowerCase();
   filteredTickets = term
-    ? allTickets.filter(t => t.title.toLowerCase().includes(term) || (t.ticket_number||'').toLowerCase().includes(term))
+    ? allTickets.filter(t => t.title.toLowerCase().includes(term) || (t.ticket_number || '').toLowerCase().includes(term))
     : [...allTickets];
   currentPage = 1;
   renderTicketsGrid();
@@ -248,8 +265,8 @@ function filterStatus(el) {
 }
 
 function renderTicketsGrid() {
-  const start = (currentPage-1)*PER_PAGE;
-  const page  = filteredTickets.slice(start, start+PER_PAGE);
+  const start = (currentPage - 1) * PER_PAGE;
+  const page  = filteredTickets.slice(start, start + PER_PAGE);
   const grid  = document.getElementById('tickets-grid');
 
   if (!filteredTickets.length) {
@@ -264,24 +281,24 @@ function renderTicketsGrid() {
   let pagesHtml = '';
   for (let i = 1; i <= pages; i++) {
     if (pages <= 7 || Math.abs(i - currentPage) <= 2 || i === 1 || i === pages) {
-      pagesHtml += `<button class="pagination-page ${i===currentPage?'active':''}" onclick="changePage(${i})">${i}</button>`;
+      pagesHtml += `<button class="pagination-page ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
     }
   }
   document.getElementById('tickets-pagination').innerHTML = `
-    <span class="pagination-info">${total} ticket${total!==1?'s':''}</span>
+    <span class="pagination-info">${total} ticket${total !== 1 ? 's' : ''}</span>
     <div class="pagination-pages" style="display:flex;gap:4px;align-items:center;">
-      <button class="pagination-btn" onclick="changePage(${currentPage-1})" ${currentPage<=1?'disabled':''}>
+      <button class="pagination-btn" onclick="changePage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
       ${pagesHtml}
-      <button class="pagination-btn" onclick="changePage(${currentPage+1})" ${currentPage>=pages?'disabled':''}>
+      <button class="pagination-btn" onclick="changePage(${currentPage + 1})" ${currentPage >= pages ? 'disabled' : ''}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>`;
 }
 
 function changePage(p) {
-  if (p < 1 || p > Math.ceil(filteredTickets.length/PER_PAGE)) return;
+  if (p < 1 || p > Math.ceil(filteredTickets.length / PER_PAGE)) return;
   currentPage = p;
   renderTicketsGrid();
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -314,74 +331,101 @@ async function openTicket(id) {
 
     document.getElementById('modal-ticket-num').textContent = t.ticket_number || '—';
 
-    const statusLabel   = (t.status||'unknown').replace('_',' ');
+    const statusLabel   = (t.status || 'unknown').replace('_', ' ');
     const priorityLabel = t.priority || 'unknown';
 
-    // Build attachments gallery if any
-    const attHtml = attachments.length ? `
-      <div style="margin-top:16px;">
+    // ── Image gallery ─────────────────────────────────────
+    const images = attachments.filter(a => a.file_type === 'image' || (a.mime_type || '').startsWith('image/'));
+    const docs   = attachments.filter(a => !images.includes(a));
+
+    // Build all image URLs array for lightbox
+    const imageUrls = images.map(a => a.file_url);
+
+    const imgHtml = images.length ? `
+      <div style="margin-top:16px">
         <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">
-          Photos (${attachments.length})
+          Photos (${images.length})
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          ${attachments.map(a => `
-            <a href="${a.file_url}" target="_blank" rel="noopener"
-              style="width:80px;height:80px;border-radius:8px;overflow:hidden;display:block;border:1.5px solid var(--border);flex-shrink:0;">
-              <img src="${a.file_url}" alt="${a.file_name || 'photo'}"
-                style="width:100%;height:100%;object-fit:cover;display:block;">
-            </a>`).join('')}
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          ${images.map((a, i) => `
+            <div onclick='_lbOpen(${i}, ${JSON.stringify(imageUrls)})'
+                 style="width:80px;height:80px;border-radius:8px;overflow:hidden;cursor:pointer;
+                        border:1.5px solid var(--border);flex-shrink:0;position:relative">
+              <img src="${_esc(a.file_url)}"
+                   alt="${_esc(a.file_name || 'photo')}"
+                   style="width:100%;height:100%;object-fit:cover;display:block"
+                   onerror="this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f3f4f6;font-size:22px\'>🖼️</div>'">
+              <div style="position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .2s"
+                   onmouseenter="this.style.background='rgba(0,0,0,.18)'" onmouseleave="this.style.background='rgba(0,0,0,0)'">
+              </div>
+            </div>`).join('')}
         </div>
+      </div>` : '';
+
+    const docHtml = docs.length ? `
+      <div style="margin-top:12px">
+        ${docs.map(d => `
+          <a href="${_esc(d.file_url)}" target="_blank" rel="noopener" download="${_esc(d.file_name || 'file')}"
+             style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);
+                    border-radius:6px;font-size:12px;color:var(--text);text-decoration:none;margin-bottom:6px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            ${_esc(d.file_name || 'Download file')}
+            <svg width="12" height="12" style="margin-left:auto;opacity:.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </a>`).join('')}
       </div>` : '';
 
     document.getElementById('modal-ticket-content').innerHTML = `
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-        ${badgeHtml(statusLabel,   STATUS_CLASS[t.status]   || 'badge-closed', STATUS_ICON[t.status]   || '')}
+        ${badgeHtml(statusLabel,   STATUS_CLASS[t.status]    || 'badge-closed', STATUS_ICON[t.status]    || '')}
         ${badgeHtml(priorityLabel, PRIORITY_CLASS[t.priority] || 'badge-medium', PRIORITY_ICON[t.priority] || '')}
         ${t.category_name ? `<span class="badge badge-category">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-          ${t.category_name}
+          ${_esc(t.category_name)}
         </span>` : ''}
       </div>
-      <div class="ticket-detail-title">${t.title || 'Untitled'}</div>
-      <div class="ticket-detail-desc">${t.description || '<em style="color:var(--muted)">No description provided.</em>'}</div>
+      <div class="ticket-detail-title">${_esc(t.title || 'Untitled')}</div>
+      <div class="ticket-detail-desc">${t.description ? _esc(t.description) : '<em style="color:var(--muted)">No description provided.</em>'}</div>
       <div class="ticket-detail-meta">
         <span class="ticket-detail-meta-item">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          ${t.property_name || '—'}
+          ${_esc(t.property_name || '—')}
         </span>
         ${t.unit_number ? `<span class="ticket-detail-meta-item">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          Unit ${t.unit_number}
+          Unit ${_esc(t.unit_number)}
         </span>` : ''}
         <span class="ticket-detail-meta-item">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-          ${t.assigned_to_name || 'Unassigned'}
+          ${_esc(t.assigned_to_name || 'Unassigned')}
         </span>
         <span class="ticket-detail-meta-item">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           ${typeof fmtDate === 'function' ? fmtDate(t.created_at) : t.created_at}
         </span>
       </div>
-      ${attHtml}
-    `;
+      ${imgHtml}
+      ${docHtml}`;
 
+    // ── Updates ───────────────────────────────────────────
     document.getElementById('updates-list').innerHTML = updates.length
       ? updates.map(u => `
           <div class="update-item">
-            <div class="update-avatar">${(u.user_name||'?')[0].toUpperCase()}</div>
+            <div class="update-avatar">${_esc((u.user_name || '?')[0].toUpperCase())}</div>
             <div class="update-body">
               <div class="update-meta">
-                <strong>${u.user_name || 'System'}</strong>
+                <strong>${_esc(u.user_name || 'System')}</strong>
                 <span>${typeof timeAgo === 'function' ? timeAgo(u.created_at) : u.created_at}</span>
-                ${u.is_internal ? `<span class="badge badge-medium" style="font-size:10px;">Internal</span>` : ''}
+                ${u.is_internal ? `<span class="badge badge-medium" style="font-size:10px">Internal</span>` : ''}
               </div>
-              <div class="update-msg">${u.message || ''}</div>
+              ${u.status_change
+                ? `<div class="update-msg" style="font-style:italic;color:var(--muted)">Status changed to <strong>${u.status_change.replace('_', ' ')}</strong></div>`
+                : `<div class="update-msg">${_esc(u.message || '')}</div>`}
             </div>
-          </div>
-        `).join('')
+          </div>`)
+        .join('')
       : '<p style="color:var(--muted);font-size:13px;padding:12px 0">No updates yet.</p>';
 
-  } catch(e) { showNotification('Error', e.message, '⚠'); }
+  } catch (e) { showNotification('Error', e.message, '⚠'); }
 }
 
 function closeModal() {
@@ -397,18 +441,78 @@ function modalTab(tab, el) {
 }
 
 async function postUpdate() {
-  const msg = document.getElementById('update-msg').value.trim();
+  const msg = (document.getElementById('update-msg')?.value || '').trim();
   if (!msg) return;
   try {
     await POST(`/api/tickets/${openTicketId}/updates`, { message: msg });
     document.getElementById('update-msg').value = '';
-    showNotification('Success', 'Comment added successfully.', '✓');
-    openTicket(openTicketId);
-  } catch(e) { showNotification('Error', e.message, '⚠'); }
+    showNotification('Comment added', 'Your message has been posted.', '✓');
+    openTicket(openTicketId); // Refresh modal
+  } catch (e) { showNotification('Error', e.message, '⚠'); }
 }
 
+/* ── Lightbox ─────────────────────────────────────────────── */
+let _lbUrls = [], _lbIdx = 0;
+
+function _lbOpen(index, urls) {
+  _lbUrls = urls;
+  _lbIdx  = index;
+  _lbRender();
+}
+
+function _lbRender() {
+  document.getElementById('_rt-lb')?.remove();
+
+  const lb = document.createElement('div');
+  lb.id = '_rt-lb';
+  lb.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;';
+
+  lb.innerHTML = `
+    <button onclick="_lbClose()"
+      style="position:absolute;top:16px;right:20px;background:rgba(255,255,255,.12);border:none;color:#fff;
+             width:36px;height:36px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+
+    <div style="position:absolute;top:20px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:13px;white-space:nowrap">
+      ${_lbIdx + 1} / ${_lbUrls.length}
+    </div>
+
+    <img id="_lb-img" src="${_esc(_lbUrls[_lbIdx])}"
+         style="max-width:90vw;max-height:78vh;object-fit:contain;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,.7)"
+         onerror="this.alt='Could not load image'">
+
+    ${_lbUrls.length > 1 ? `
+      <button onclick="_lbPrev()" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center">‹</button>
+      <button onclick="_lbNext()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center">›</button>
+    ` : ''}
+
+    ${_lbUrls.length > 1 ? `
+      <div style="display:flex;gap:8px;margin-top:16px;overflow-x:auto;max-width:90vw;padding:4px 0">
+        ${_lbUrls.map((url, i) => `
+          <img src="${_esc(url)}" onclick="_lbGoto(${i})"
+               style="width:54px;height:54px;object-fit:cover;border-radius:6px;cursor:pointer;flex-shrink:0;
+                      opacity:${i === _lbIdx ? 1 : 0.45};border:2px solid ${i === _lbIdx ? 'white' : 'transparent'};
+                      transition:opacity .2s,border-color .2s">`
+        ).join('')}
+      </div>
+    ` : ''}`;
+
+  // Close on backdrop
+  lb.addEventListener('click', e => { if (e.target === lb) _lbClose(); });
+  document.body.appendChild(lb);
+  document.addEventListener('keydown', _lbKeyHandler);
+}
+
+function _lbKeyHandler(e) {
+  if (e.key === 'ArrowRight') _lbNext();
+  if (e.key === 'ArrowLeft')  _lbPrev();
+  if (e.key === 'Escape')     _lbClose();
+}
+function _lbNext() { _lbIdx = (_lbIdx + 1) % _lbUrls.length; _lbRender(); }
+function _lbPrev() { _lbIdx = (_lbIdx - 1 + _lbUrls.length) % _lbUrls.length; _lbRender(); }
+function _lbGoto(i) { _lbIdx = i; _lbRender(); }
+function _lbClose() { document.getElementById('_rt-lb')?.remove(); document.removeEventListener('keydown', _lbKeyHandler); }
+
 /* ── New Ticket Form ──────────────────────────────────────── */
-// Store occupancy for submit enforcement
 let _tenantOccupancy = null;
 
 async function loadFormData() {
@@ -418,73 +522,62 @@ async function loadFormData() {
       GET('/api/auth/my-unit').catch(() => ({ data: null })),
     ]);
 
-    _tenantOccupancy = myUnitResp.data; // cache for submitTicket enforcement
+    _tenantOccupancy = myUnitResp.data;
 
-    // Categories are fine to load normally
     document.getElementById('nt-category').innerHTML =
       '<option value="">— Select category —</option>' +
-      (catResp.data||[]).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      (catResp.data || []).map(c => `<option value="${c.id}">${_esc(c.name)}</option>`).join('');
 
     const propSel = document.getElementById('nt-property');
     const unitSel = document.getElementById('nt-unit');
     const hint    = document.getElementById('nt-unit-hint');
 
     if (_tenantOccupancy) {
-      // Only show the ONE property this tenant belongs to — no other options
-      propSel.innerHTML = `<option value="${_tenantOccupancy.property_id}">${_tenantOccupancy.property_name}</option>`;
+      propSel.innerHTML = `<option value="${_esc(_tenantOccupancy.property_id)}">${_esc(_tenantOccupancy.property_name)}</option>`;
       propSel.value     = _tenantOccupancy.property_id;
-
-      // Only show the ONE unit this tenant lives in — no other options
-      unitSel.innerHTML = `<option value="${_tenantOccupancy.unit_id}">Unit ${_tenantOccupancy.unit_number}</option>`;
+      unitSel.innerHTML = `<option value="${_esc(_tenantOccupancy.unit_id)}">Unit ${_esc(_tenantOccupancy.unit_number)}</option>`;
       unitSel.value     = _tenantOccupancy.unit_id;
 
-      // Style as read-only display — pointer-events off so nothing is clickable
       [propSel, unitSel].forEach(el => {
-        el.style.pointerEvents  = 'none';
-        el.style.background     = 'var(--surface, #f8fafc)';
-        el.style.color          = 'var(--text)';
-        el.style.cursor         = 'default';
-        el.style.border         = '1.5px solid var(--border)';
+        el.style.pointerEvents = 'none';
+        el.style.background    = 'var(--surface, #f8fafc)';
+        el.style.color         = 'var(--text)';
+        el.style.cursor        = 'default';
+        el.style.border        = '1.5px solid var(--border)';
         el.setAttribute('aria-readonly', 'true');
       });
 
       if (hint) {
-        hint.style.display  = 'flex';
+        hint.style.display = 'flex';
         const span = document.getElementById('nt-unit-hint-text');
-        if (span) span.textContent =
-          `${_tenantOccupancy.property_name} · Unit ${_tenantOccupancy.unit_number}`;
+        if (span) span.textContent = `${_tenantOccupancy.property_name} · Unit ${_tenantOccupancy.unit_number}`;
       }
     } else {
-      // No active tenancy — tenant portal shouldn't normally reach here,
-      // but degrade gracefully by loading all properties
       const propResp = await GET('/api/properties').catch(() => ({ data: [] }));
       propSel.innerHTML =
         '<option value="">— Select property —</option>' +
-        (propResp.data||[]).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        (propResp.data || []).map(p => `<option value="${p.id}">${_esc(p.name)}</option>`).join('');
       if (hint) hint.style.display = 'none';
     }
-
-  } catch(e) { showNotification('Error', 'Could not load form data: ' + e.message, '⚠'); }
+  } catch (e) { showNotification('Error', 'Could not load form data: ' + e.message, '⚠'); }
 }
 
 async function loadUnits() {
-  // When a tenant has an active occupancy loadFormData handles everything.
-  // This function only runs for staff/managers without a fixed unit.
   if (_tenantOccupancy) return;
   const propId = document.getElementById('nt-property').value;
-  const sel = document.getElementById('nt-unit');
+  const sel    = document.getElementById('nt-unit');
   sel.innerHTML = '<option value="">Loading…</option>';
   if (!propId) { sel.innerHTML = '<option value="">— Select unit (optional) —</option>'; return; }
   try {
     const resp = await GET(`/api/properties/${propId}/units`);
     sel.innerHTML = '<option value="">— Select unit (optional) —</option>' +
-      (resp.data||[]).map(u => `<option value="${u.id}">Unit ${u.unit_number}</option>`).join('');
-  } catch(e) { sel.innerHTML = '<option value="">No units found</option>'; }
+      (resp.data || []).map(u => `<option value="${u.id}">Unit ${_esc(u.unit_number)}</option>`).join('');
+  } catch (e) { sel.innerHTML = '<option value="">No units found</option>'; }
 }
 
 function clearErrors_nt() {
-  ['nt-title','nt-property'].forEach(id => {
-    document.getElementById(id).classList.remove('error');
+  ['nt-title', 'nt-property'].forEach(id => {
+    document.getElementById(id)?.classList.remove('error');
     const err = document.getElementById(`${id}-err`);
     if (err) { err.textContent = ''; err.classList.remove('show'); }
   });
@@ -492,26 +585,21 @@ function clearErrors_nt() {
 
 async function submitTicket() {
   clearErrors_nt();
-  const title    = document.getElementById('nt-title').value.trim();
-  // Always use the server-verified occupancy — never trust the form value directly
-  const propId = _tenantOccupancy
-    ? _tenantOccupancy.property_id
-    : document.getElementById('nt-property').value;
-  const unitId = _tenantOccupancy
-    ? _tenantOccupancy.unit_id
-    : document.getElementById('nt-unit').value;
-  const catId    = document.getElementById('nt-category').value;
-  const priority = document.getElementById('nt-priority').value;
-  const desc     = document.getElementById('nt-desc').value.trim();
+  const title    = (document.getElementById('nt-title')?.value || '').trim();
+  const propId   = _tenantOccupancy ? _tenantOccupancy.property_id : document.getElementById('nt-property').value;
+  const unitId   = _tenantOccupancy ? _tenantOccupancy.unit_id     : document.getElementById('nt-unit').value;
+  const catId    = document.getElementById('nt-category')?.value;
+  const priority = document.getElementById('nt-priority')?.value || 'medium';
+  const desc     = (document.getElementById('nt-desc')?.value || '').trim();
   let valid = true;
 
-  if (!title)              { setErr('nt-title', 'Issue title is required.'); valid = false; }
+  if (!title)           { setErr('nt-title',    'Issue title is required.');        valid = false; }
   else if (title.length < 5) { setErr('nt-title', 'Title must be at least 5 characters.'); valid = false; }
-  if (!propId)             { setErr('nt-property', 'Please select a property.'); valid = false; }
+  if (!propId)          { setErr('nt-property', 'Please select a property.');       valid = false; }
   if (!valid) return;
 
   const btn = document.getElementById('submit-ticket-btn');
-  btn.disabled = true;
+  btn.disabled  = true;
   btn.innerHTML = `<span class="spinner"></span> Submitting…`;
 
   try {
@@ -519,11 +607,11 @@ async function submitTicket() {
       title, property_id: propId,
       unit_id:     unitId  || undefined,
       category_id: catId   || undefined,
-      priority, description: desc || undefined,
+      priority,
+      description: desc    || undefined,
     });
     const ticket = ticketResp.data;
 
-    // Upload any attached photos
     if (ntFiles.length) {
       btn.innerHTML = `<span class="spinner"></span> Uploading ${ntFiles.length} photo${ntFiles.length > 1 ? 's' : ''}…`;
       for (const item of ntFiles) {
@@ -534,10 +622,7 @@ async function submitTicket() {
             file_size: item.file.size,
             mime_type: item.file.type,
           });
-        } catch (attErr) {
-          // Non-fatal — ticket is already created
-          console.warn('Photo upload failed:', item.file.name, attErr.message);
-        }
+        } catch (attErr) { console.warn('Photo upload failed:', item.file.name, attErr.message); }
       }
     }
 
@@ -545,46 +630,40 @@ async function submitTicket() {
     clearNewTicket();
     showPage('tickets', document.querySelectorAll('.nav-item')[1]);
     loadMyTickets();
-  } catch(e) { showNotification('Error', e.message, '⚠'); }
-  finally {
-    btn.disabled = false;
+  } catch (e) {
+    showNotification('Error', e.message, '⚠');
+  } finally {
+    btn.disabled  = false;
     btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Submit Ticket`;
   }
 }
 
 function setErr(id, msg) {
-  document.getElementById(id).classList.add('error');
+  document.getElementById(id)?.classList.add('error');
   const e = document.getElementById(`${id}-err`);
   if (e) { e.textContent = msg; e.classList.add('show'); }
 }
 
 function clearNewTicket() {
-  ['nt-title','nt-desc'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('nt-category').selectedIndex = 0;
-  document.getElementById('nt-priority').value = 'medium';
+  ['nt-title', 'nt-desc'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  const cat = document.getElementById('nt-category'); if (cat) cat.selectedIndex = 0;
+  const pri = document.getElementById('nt-priority'); if (pri) pri.value = 'medium';
   clearErrors_nt();
   ntClearFiles();
-  // Re-run loadFormData so property/unit prefill and locks are restored
   loadFormData();
 }
 
 /* ── Photo attachment handlers ────────────────────────────── */
-function ntFilesSelected(event) {
-  ntAddFiles(Array.from(event.target.files));
-  event.target.value = '';
-}
-
+function ntFilesSelected(event) { ntAddFiles(Array.from(event.target.files)); event.target.value = ''; }
 function ntDragOver(event) {
   event.preventDefault();
   const dz = document.getElementById('nt-dropzone');
   if (dz) { dz.style.borderColor = 'var(--blue)'; dz.style.background = 'rgba(59,130,246,.04)'; }
 }
-
 function ntDragLeave() {
   const dz = document.getElementById('nt-dropzone');
   if (dz) { dz.style.borderColor = ''; dz.style.background = ''; }
 }
-
 function ntDrop(event) {
   event.preventDefault();
   ntDragLeave();
@@ -593,53 +672,32 @@ function ntDrop(event) {
 
 function ntAddFiles(files) {
   for (const file of files) {
-    if (ntFiles.length >= NT_MAX_FILES) {
-      showNotification('Too many photos', `Maximum ${NT_MAX_FILES} photos allowed.`, '⚠'); break;
-    }
-    if (!file.type.startsWith('image/')) {
-      showNotification('Invalid file', `${file.name}: only images are supported.`, '⚠'); continue;
-    }
-    if (file.size > NT_MAX_BYTES) {
-      showNotification('File too large', `${file.name} exceeds the 5 MB limit.`, '⚠'); continue;
-    }
-    const itemId = `ntf-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    if (ntFiles.length >= NT_MAX_FILES) { showNotification('Too many photos', `Maximum ${NT_MAX_FILES} photos allowed.`, '⚠'); break; }
+    if (!file.type.startsWith('image/')) { showNotification('Invalid file', `${file.name}: only images are supported.`, '⚠'); continue; }
+    if (file.size > NT_MAX_BYTES) { showNotification('File too large', `${file.name} exceeds the 5 MB limit.`, '⚠'); continue; }
+    const itemId = `ntf-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const reader = new FileReader();
-    reader.onload = e => {
-      ntFiles.push({ id: itemId, file, dataUrl: e.target.result });
-      ntRenderPreviews();
-    };
+    reader.onload = e => { ntFiles.push({ id: itemId, file, dataUrl: e.target.result }); ntRenderPreviews(); };
     reader.readAsDataURL(file);
   }
 }
 
-function ntRemoveFile(itemId) {
-  ntFiles = ntFiles.filter(f => f.id !== itemId);
-  ntRenderPreviews();
-}
-
-function ntClearFiles() {
-  ntFiles = [];
-  ntRenderPreviews();
-}
+function ntRemoveFile(itemId) { ntFiles = ntFiles.filter(f => f.id !== itemId); ntRenderPreviews(); }
+function ntClearFiles()       { ntFiles = []; ntRenderPreviews(); }
 
 function ntRenderPreviews() {
   const grid = document.getElementById('nt-preview-grid');
   const dz   = document.getElementById('nt-dropzone');
   if (!grid) return;
-
-  // Hide drop zone once limit is reached
   if (dz) dz.style.display = ntFiles.length >= NT_MAX_FILES ? 'none' : '';
-
   grid.innerHTML = ntFiles.map(item => `
     <div style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1.5px solid var(--border);flex-shrink:0;">
-      <img src="${item.dataUrl}" alt="${item.file.name}"
-        style="width:100%;height:100%;object-fit:cover;display:block;">
+      <img src="${item.dataUrl}" alt="${_esc(item.file.name)}" style="width:100%;height:100%;object-fit:cover;display:block">
       <button onclick="ntRemoveFile('${item.id}')"
-        style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);border:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
-        ✕
-      </button>
-    </div>`
-  ).join('');
+        style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;
+               background:rgba(0,0,0,.65);border:none;color:#fff;font-size:11px;line-height:1;
+               cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✕</button>
+    </div>`).join('');
 }
 
 /* ── Notifications ────────────────────────────────────────── */
@@ -657,12 +715,13 @@ async function loadNotifications() {
     list.innerHTML = notifs.map(n => {
       if (!n.is_read) unread++;
       return `
-        <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .15s;${!n.is_read ? 'background:#f7f9ff;' : ''}"
-          id="notif-${n.id}" onclick="readNotif('${n.id}')">
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border-light);
+                    cursor:pointer;transition:background .15s;${!n.is_read ? 'background:#f7f9ff;' : ''}"
+             id="notif-${n.id}" onclick="readNotif('${n.id}')">
           <div style="width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0;background:${n.is_read ? 'transparent' : 'var(--blue)'}"></div>
           <div style="flex:1;min-width:0">
-            <div style="font-weight:${n.is_read ? 500 : 700};font-size:13.5px;margin-bottom:3px;color:var(--text)">${n.title || 'Notification'}</div>
-            <div style="font-size:13px;color:var(--text-2);line-height:1.5">${n.message || ''}</div>
+            <div style="font-weight:${n.is_read ? 500 : 700};font-size:13.5px;margin-bottom:3px;color:var(--text)">${_esc(n.title || 'Notification')}</div>
+            <div style="font-size:13px;color:var(--text-2);line-height:1.5">${_esc(n.message || '')}</div>
             <div style="font-size:11.5px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:4px;">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               ${typeof timeAgo === 'function' ? timeAgo(n.created_at) : n.created_at}
@@ -671,7 +730,7 @@ async function loadNotifications() {
         </div>`;
     }).join('');
     document.getElementById('notif-dot').style.display = unread > 0 ? 'inline-block' : 'none';
-  } catch(e) { showNotification('Error', e.message, '⚠'); }
+  } catch (e) { showNotification('Error', e.message, '⚠'); }
 }
 
 async function readNotif(id) {
@@ -683,7 +742,7 @@ async function readNotif(id) {
       const dot = el.querySelector('div[style*="border-radius:50%"]');
       if (dot) dot.style.background = 'transparent';
     }
-  } catch(e) {}
+  } catch (e) { /* silent */ }
 }
 
 async function markAllRead() {
@@ -692,13 +751,124 @@ async function markAllRead() {
     document.getElementById('notif-dot').style.display = 'none';
     showNotification('All read', 'All notifications marked as read.', '✓');
     loadNotifications();
-  } catch(e) { showNotification('Error', e.message, '⚠'); }
+  } catch (e) { showNotification('Error', e.message, '⚠'); }
+}
+
+/* ── Profile ──────────────────────────────────────────────── */
+async function loadProfile() {
+  try {
+    const res = await GET('/api/auth/me');
+    const u   = res.data;
+    if (!u) return;
+
+    // Save to Auth cache
+    if (typeof Auth !== 'undefined' && Auth.user) Object.assign(Auth.user, u);
+
+    // Avatar
+    const avatarEl = document.getElementById('profile-avatar');
+    if (avatarEl) {
+      if (u.profile_photo) {
+        avatarEl.innerHTML = `<img src="${_esc(u.profile_photo)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`;
+      } else {
+        const initials = (u.name || 'T').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        avatarEl.textContent = initials;
+      }
+    }
+
+    _setText('profile-name-display',  u.name  || '—');
+    _setText('profile-email-display', u.email || '—');
+    _setText('profile-role-display',  _capitalize(u.role || ''));
+    _setText('profile-last-login',    u.last_login ? new Date(u.last_login).toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' }) : 'Never');
+
+    _setVal('profile-name',  u.name  || '');
+    _setVal('profile-email', u.email || '');
+    _setVal('profile-phone', u.phone || '');
+
+    // Clear password fields on load
+    ['current-password', 'new-password', 'confirm-password'].forEach(id => _setVal(id, ''));
+
+    // Sync sidebar
+    _applyAvatar(document.getElementById('sb-avatar'), u);
+    _setText('sb-name', u.name || '');
+
+  } catch (e) { showNotification('Error', 'Could not load profile: ' + e.message, '⚠'); }
+}
+
+async function saveProfileChanges() {
+  const name  = (document.getElementById('profile-name')?.value  || '').trim();
+  const email = (document.getElementById('profile-email')?.value || '').trim();
+  const phone = (document.getElementById('profile-phone')?.value || '').trim();
+  const curPw = document.getElementById('current-password')?.value || '';
+  const newPw = document.getElementById('new-password')?.value    || '';
+  const conPw = document.getElementById('confirm-password')?.value || '';
+
+  if (!name)  { showNotification('Validation', 'Name is required.',  '⚠'); return; }
+  if (!email) { showNotification('Validation', 'Email is required.', '⚠'); return; }
+
+  let anyError = false;
+
+  // Profile update
+  try {
+    await PUT('/api/auth/profile', { name, email, phone: phone || undefined });
+  } catch (e) {
+    showNotification('Update failed', e.message || 'Could not update profile.', '⚠');
+    anyError = true;
+  }
+
+  // Password change — only if any field is filled
+  if (curPw || newPw || conPw) {
+    if (!curPw)          { showNotification('Password', 'Enter your current password.',       '⚠'); return; }
+    if (newPw.length < 8){ showNotification('Password', 'New password must be 8+ characters.','⚠'); return; }
+    if (newPw !== conPw) { showNotification('Password', 'New passwords do not match.',        '⚠'); return; }
+
+    try {
+      await POST('/api/auth/change-password', { current_password: curPw, new_password: newPw });
+      ['current-password', 'new-password', 'confirm-password'].forEach(id => _setVal(id, ''));
+    } catch (e) {
+      showNotification('Password error', e.message || 'Could not change password.', '⚠');
+      anyError = true;
+    }
+  }
+
+  if (!anyError) {
+    showNotification('Saved!', 'Your profile has been updated.', '✓');
+    loadProfile();
+  }
+}
+
+async function handleProfilePhoto(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showNotification('Too large', 'Photo must be under 5 MB.', '⚠'); return; }
+
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      await PUT('/api/auth/profile', { profile_photo: ev.target.result });
+      showNotification('Photo updated', 'Profile photo saved.', '✓');
+      loadProfile();
+    } catch (e) { showNotification('Upload failed', e.message, '⚠'); }
+  };
+  reader.readAsDataURL(file);
+}
+
+function togglePassword(id) {
+  const el = document.getElementById(id);
+  if (el) el.type = el.type === 'password' ? 'text' : 'password';
 }
 
 /* ── Close modal on backdrop click ───────────────────────── */
 document.getElementById('ticket-modal').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeModal();
 });
+
+/* ── Utilities ────────────────────────────────────────────── */
+function _esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function _setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function _setVal(id, v)  { const el = document.getElementById(id); if (el) el.value = v; }
+function _capitalize(s)  { return s ? s[0].toUpperCase() + s.slice(1) : ''; }
 
 /* ── Boot ─────────────────────────────────────────────────── */
 loadDashboard();
