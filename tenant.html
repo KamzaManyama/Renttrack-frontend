@@ -341,46 +341,240 @@
       </div>
     </section>
 
+    <section class="page" id="page-profile">
+  <div class="page-header"><h2>My Profile</h2></div>
+
+  <div class="profile-layout">
+
+    <!-- Left card: avatar + meta -->
+    <div class="profile-side">
+      <div class="card" style="text-align:center;padding:28px 24px">
+
+        <!-- Avatar — click to change photo -->
+        <div id="profile-avatar"
+             onclick="document.getElementById('photo-upload').click()"
+             title="Click to change photo"
+             style="width:96px;height:96px;border-radius:50%;margin:0 auto 6px;
+                    background:var(--sa-grad,linear-gradient(135deg,#3b82f6,#6366f1));
+                    display:flex;align-items:center;justify-content:center;
+                    color:white;font-size:36px;font-weight:700;
+                    cursor:pointer;overflow:hidden;position:relative">
+          T
+          <!-- hover overlay -->
+          <div style="position:absolute;inset:0;background:rgba(0,0,0,.35);border-radius:50%;
+                      display:flex;align-items:center;justify-content:center;opacity:0;
+                      transition:opacity .2s"
+               class="avatar-overlay">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+        </div>
+
+        <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Click avatar to change photo</div>
+        <input type="file" id="photo-upload" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">
+
+        <div id="profile-name-display"  style="font-size:17px;font-weight:700;margin-bottom:2px">—</div>
+        <div id="profile-email-display" style="color:var(--muted);font-size:13px;margin-bottom:20px">—</div>
+
+        <div style="border-top:1px solid var(--border);padding-top:16px;text-align:left">
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:12px">
+            <span style="color:var(--muted)">Role</span>
+            <span style="font-weight:600" id="profile-role-display">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px">
+            <span style="color:var(--muted)">Last login</span>
+            <span style="font-weight:600" id="profile-last-login">—</span>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /profile-side -->
+
+    <!-- Right: forms -->
+    <div class="profile-main">
+
+      <!-- Personal Information -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header"><h3>Personal Information</h3></div>
+        <div class="card-body">
+          <div class="form-grid" style="gap:16px">
+
+            <div class="form-grid cols-2">
+              <div class="form-group">
+                <label>Full Name <span style="color:#ef4444">*</span></label>
+                <input type="text" id="profile-name" placeholder="Your full name" autocomplete="name">
+              </div>
+              <div class="form-group">
+                <label>Email Address <span style="color:#ef4444">*</span></label>
+                <input type="email" id="profile-email" placeholder="you@example.com" autocomplete="email">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="tel" id="profile-phone" placeholder="082 123 4567" autocomplete="tel">
+            </div>
+
+          </div>
+        </div>
+      </div><!-- /personal -->
+
+      <!-- Change Password -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <h3>Change Password</h3>
+          <span style="font-size:12px;color:var(--muted)">Leave blank to keep current password</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid" style="gap:14px">
+
+            <div class="form-group">
+              <label>Current Password</label>
+              <div class="pw-wrap">
+                <input type="password" id="current-password" placeholder="Enter current password" autocomplete="current-password">
+                <span class="pw-toggle" onclick="togglePassword('current-password')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="form-grid cols-2">
+              <div class="form-group">
+                <label>New Password</label>
+                <div class="pw-wrap">
+                  <input type="password" id="new-password" placeholder="Min 8 characters" autocomplete="new-password">
+                  <span class="pw-toggle" onclick="togglePassword('new-password')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Confirm New Password</label>
+                <div class="pw-wrap">
+                  <input type="password" id="confirm-password" placeholder="Repeat new password" autocomplete="new-password">
+                  <span class="pw-toggle" onclick="togglePassword('confirm-password')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div><!-- /password -->
+
+      <!-- Action buttons -->
+      <div style="display:flex;gap:12px;justify-content:flex-end">
+        <button class="btn btn-outline" onclick="loadProfile()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.49"/>
+          </svg>
+          Reset
+        </button>
+        <button class="btn btn-primary" onclick="saveProfileChanges()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Save Changes
+        </button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+
   </div><!-- /main -->
 </div><!-- /app -->
 
 <!-- ══ Ticket Detail Modal ══ -->
 <div class="modal-backdrop" id="ticket-modal">
-  <div class="modal" style="max-width:600px">
+  <div class="modal" style="max-width:620px">
+
     <div class="modal-header">
       <h3 id="modal-ticket-num">TKT-000000</h3>
-      <button class="btn btn-ghost btn-sm" onclick="closeModal()" style="padding:6px 8px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()" style="padding:6px 8px;" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
       </button>
     </div>
+
     <div class="modal-body">
+
+      <!-- Ticket summary, description + image thumbnails -->
       <div id="modal-ticket-content">
         <div style="text-align:center;padding:40px;color:var(--muted)">
-          <div class="spinner" style="border-color:rgba(0,0,0,.1);border-top-color:var(--blue);margin:0 auto 12px;width:24px;height:24px;"></div>
+          <div class="spinner" style="border-color:rgba(0,0,0,.1);border-top-color:var(--blue);
+                                      margin:0 auto 12px;width:24px;height:24px"></div>
           Loading…
         </div>
       </div>
 
-      <div style="margin-top:24px">
+      <!-- Tabs -->
+      <div style="margin-top:20px">
         <div class="tab-bar">
           <button class="tab-btn active" onclick="modalTab('updates',this)">Updates</button>
-          <button class="tab-btn" onclick="modalTab('details',this)">Details</button>
+          <button class="tab-btn"        onclick="modalTab('details',this)">Details</button>
         </div>
+
+        <!-- Updates tab -->
         <div id="modal-updates">
-          <div id="updates-list"><p style="color:var(--muted);font-size:13px;padding:12px 0">No updates yet.</p></div>
-          <div class="comment-box">
-            <textarea id="update-msg" placeholder="Add a comment…" rows="2"></textarea>
+          <div id="updates-list" style="max-height:260px;overflow-y:auto">
+            <p style="color:var(--muted);font-size:13px;padding:12px 0">No updates yet.</p>
+          </div>
+          <div class="comment-box" style="margin-top:12px">
+            <textarea id="update-msg" placeholder="Add a comment or question…" rows="2"></textarea>
             <button class="btn btn-primary btn-sm" onclick="postUpdate()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
               Send
             </button>
           </div>
         </div>
+
+        <!-- Details tab -->
         <div id="modal-details" style="display:none"></div>
       </div>
-    </div>
-  </div>
-</div>
+
+    </div><!-- /modal-body -->
+  </div><!-- /modal -->
+</div><!-- /#ticket-modal -->
+
+
+
+<style>
+#profile-avatar:hover .avatar-overlay { opacity: 1 !important; }
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 720px) {
+  .profile-layout { grid-template-columns: 1fr; }
+}
+</style>
+
 
 <script src="app.js"></script>
 <script src="javascript/tenant.js"></script>
