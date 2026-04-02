@@ -588,5 +588,11 @@ function _cap(s)     { return s ? s[0].toUpperCase() + s.slice(1) : ''; }
 /* ── Modal backdrop close ─────────────────────────────────── */
 document.getElementById('job-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeJobModal(); });
 
+
+function showProfile() {
+  showPage('profile', null);
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+}
+
 /* ── Boot ─────────────────────────────────────────────────── */
 loadJobs();
